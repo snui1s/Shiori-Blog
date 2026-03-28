@@ -111,8 +111,15 @@
   pointer-events: none;
   height: 0;
 }
+.rich-text-content h1,
 .rich-text-content h2,
-.ProseMirror h2 {
+.rich-text-content h3,
+.rich-text-content h4,
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4 {
+  font-family: "Google Sans", "IBM Plex Sans Thai", sans-serif;
   font-size: 1.5rem;
   margin: 2rem 0 1rem;
   color: white;
@@ -180,6 +187,11 @@
 .ProseMirror strong {
   color: white;
   font-weight: 600;
+}
+
+.post-excerpt,
+.rich-text-content {
+  font-family: "Google Sans", "IBM Plex Sans Thai", sans-serif;
 }
 
 /* Editor Admin Styles */
