@@ -269,7 +269,7 @@ export default function BlogFeed({
                     {post.title}
                   </a>
                 </h2>
-                <p className="text-text-muted text-sm leading-relaxed line-clamp-2 mt-auto">
+                <p className="post-excerpt text-text-muted text-sm leading-relaxed line-clamp-2 mt-auto">
                   {post.excerpt}
                 </p>
                 <div className="pt-8 mt-6 border-t border-white/5 flex justify-between items-center text-xs text-text-muted/60 font-medium">
