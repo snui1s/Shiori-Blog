@@ -26,6 +26,7 @@ import { getOptimizedImageUrl } from "../lib/images";
 import { Image } from "astro:assets";
 import { ClientRouter } from "astro:transitions";
 import Dropdown from "../components/ui/Dropdown.astro";
+import ThemeToggle from "../components/ThemeToggle.astro";
 
 const session = await getSession(Astro.request);
 
@@ -51,6 +52,7 @@ const userAvatar =
     <meta name="title" content={siteTitle} />
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalURL} />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content={type} />
@@ -71,10 +73,9 @@ const userAvatar =
     <link rel="preconnect" href="https://res.cloudinary.com" />
 
     <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=Noto+Sans+JP:wght@400;500;600;700;900&display=swap"
       rel="stylesheet"
     />
-    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap" rel="stylesheet">
 
 
     <!-- Google Analytics -->
@@ -90,13 +91,35 @@ const userAvatar =
       gtag("js", new Date());
       gtag("config", "G-7HMDPM75DV");
     </script>
+    <!-- Prevent Theme FOUC -->
+    <script is:inline>
+      (function () {
+        const savedTheme = localStorage.getItem("shiori-theme");
+        const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        if (savedTheme === "dark" || (!savedTheme && systemDark)) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+      })();
+
+      document.addEventListener("astro:after-swap", () => {
+        const savedTheme = localStorage.getItem("shiori-theme");
+        const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        if (savedTheme === "dark" || (!savedTheme && systemDark)) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+      });
+    </script>
     <ClientRouter />
   </head>
-  <body class="bg-bg font-main text-white leading-relaxed">
+  <body class="bg-bg font-main text-text leading-relaxed">
     {/* Global Loading Bar */}
     <div 
       id="loading-bar" 
-      class="fixed top-0 left-0 h-[3px] bg-primary z-[9999] transition-all duration-500 opacity-0 pointer-events-none shadow-[0_0_10px_#f63049]" 
+      class="fixed top-0 left-0 h-[3px] bg-primary z-[9999] transition-all duration-500 opacity-0 pointer-events-none shadow-[0_0_10px_rgba(188,56,56,0.4)]" 
       style="width: 0;"
     ></div>
 
@@ -135,84 +158,74 @@ const userAvatar =
       client:load
       toastOptions={{
         style: {
-          background: "rgba(30, 30, 30, 0.8)",
-          backdropFilter: "blur(10px)",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-          color: "#fff",
+          background: "var(--color-surface)",
+          border: "1px solid var(--color-border)",
+          color: "var(--color-text)",
           fontFamily: "var(--font-main)",
           borderRadius: "12px",
+          boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.15)",
         },
         success: {
           iconTheme: {
-            primary: "#4ade80",
-            secondary: "black",
+            primary: "#16a34a",
+            secondary: "white",
           },
         },
         error: {
           iconTheme: {
-            primary: "#F63049",
+            primary: "var(--color-primary)",
             secondary: "white",
           },
         },
       }}
     />
     <div
-      class="relative md:sticky top-0 z-1000 pt-6 md:pt-8 pointer-events-none transition-all duration-500"
+      class="relative md:sticky top-0 z-1000 pt-4 md:pt-6 pointer-events-none transition-all duration-500"
     >
       <div class="container">
         <nav
-          class="glass-premium pointer-events-auto rounded-full px-6 md:px-10 border border-white/5 transition-all duration-300 shadow-2xl"
+          class="bg-surface/90 backdrop-blur-md pointer-events-auto rounded-full px-5 md:px-8 border border-border transition-all duration-300 shadow-[0_4px_20px_-4px_rgba(28,25,23,0.06)] dark:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)]"
         >
           <div class="flex justify-between items-center h-14 md:h-16">
             <a
               href="/"
-              class="group flex items-center font-extrabold text-2xl -tracking-[0.05em] text-white no-underline"
+              class="group flex items-center gap-3 font-bold text-xl -tracking-[0.02em] text-text no-underline"
             >
+              {/* Hanko Stamp Logo */}
               <div
-                class="lantern-icon w-8 h-10 flex flex-col items-center mr-0 md:mr-5 relative transition-all duration-300 drop-shadow-[0_4px_10px_rgba(246,48,73,0.4)] group-hover:drop-shadow-[0_0_20px_rgba(246,48,73,0.8)]"
+                class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary font-serif font-bold text-sm transition-transform duration-300 group-hover:scale-105 group-hover:bg-primary group-hover:text-white"
               >
-                <div class="w-4 h-1 bg-[#1a1a1a] rounded-sm"></div>
-                <div
-                  class="flex-1 w-7 bg-linear-to-r from-primary via-[#cc233b] to-primary rounded-[10px] relative flex flex-col justify-evenly border border-black/20 overflow-hidden"
-                >
-                  <div
-                    class="w-full h-px bg-black/40 shadow-[0_1px_0_rgba(255,255,255,0.1)]"
-                  >
-                  </div>
-                  <div
-                    class="w-full h-px bg-black/40 shadow-[0_1px_0_rgba(255,255,255,0.1)]"
-                  >
-                  </div>
-                </div>
-                <div class="w-4 h-1 bg-[#1a1a1a] rounded-sm"></div>
+                栞
               </div>
               <span
-                class="font-heading font-black text-base tracking-[0.5em] uppercase opacity-90 text-white transition-all duration-500 hidden md:inline ml-4 group-hover:tracking-[0.6em] group-hover:opacity-100 group-hover:text-primary"
+                class="font-heading font-extrabold text-base tracking-[0.25em] uppercase text-text transition-colors duration-300 group-hover:text-primary"
                 >Shiori</span
               >
             </a>
-            <div class="flex items-center gap-8">
-              <div class="hidden md:flex gap-10">
+            <div class="flex items-center gap-4 md:gap-6">
+              <div class="hidden md:flex gap-8">
                 <a
                   href="/"
-                  class="text-text-muted font-bold text-sm uppercase tracking-widest no-underline hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-all"
+                  class="text-text-muted font-semibold text-sm uppercase tracking-wider no-underline hover:text-primary transition-colors"
                   >หน้าแรก</a
                 >
                 <a
                   href="/blog"
-                  class="text-text-muted font-bold text-sm uppercase tracking-widest no-underline hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-all"
+                  class="text-text-muted font-semibold text-sm uppercase tracking-wider no-underline hover:text-primary transition-colors"
                   >รวมบันทึก</a
                 >
               </div>
 
               <div
-                class="border-l border-white/10 pl-6 ml-2 md:pl-6 md:ml-2 flex items-center max-md:border-l-0 max-md:pl-0"
+                class="border-l border-border pl-4 ml-1 md:pl-6 md:ml-2 flex items-center gap-3 max-md:border-l-0 max-md:pl-0"
               >
+                <ThemeToggle />
+
                 {
                   session ? (
                     <Dropdown
                       triggerClass="bg-transparent border-none p-0 cursor-pointer flex items-center transition-transform duration-200 hover:scale-105"
-                      menuClass="absolute top-[calc(100%+20px)] right-0 min-w-[220px] p-4 hidden flex-col gap-1.5 z-[1001] shadow-[0_10px_40px_rgba(0,0,0,0.5)] bg-[#1a1a1a] rounded-[1.5rem] border border-white/10 origin-top"
+                      menuClass="absolute top-[calc(100%+16px)] right-0 min-w-[220px] p-3 hidden flex-col gap-1.5 z-[1001] shadow-[0_12px_40px_rgba(0,0,0,0.35)] bg-surface rounded-2xl border border-border origin-top"
                     >
                       <Image
                         slot="trigger"
@@ -225,21 +238,22 @@ const userAvatar =
                       />
 
                       <div class="px-4 py-2 mb-1">
-                        <p class="text-xs font-bold text-white opacity-40 uppercase tracking-widest mb-1">
+                        <p class="text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">
                           Signed in as
                         </p>
-                        <p class="text-sm font-bold text-white truncate max-w-full">
+                        <p class="text-sm font-bold text-text truncate max-w-full">
                           {session.user?.name}
                         </p>
                       </div>
 
-                      <div class="h-px bg-white/5 mx-2 mb-1" />
+                      <div class="h-px bg-border mx-2 mb-1" />
 
                       {(session.user?.email === import.meta.env.ADMIN_EMAIL ||
                         (session.user as any).role === "admin") && (
                         <a
                           href="/admin"
-                          class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-white no-underline hover:bg-primary/20 hover:text-primary transition-all group/item"
+                          data-astro-reload
+                          class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm text-text no-underline hover:bg-primary/10 hover:text-primary transition-all group/item"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -256,13 +270,13 @@ const userAvatar =
                             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
                             <circle cx="12" cy="12" r="3" />
                           </svg>
-                          <span class="font-bold">Manage Posts</span>
+                          <span class="font-semibold">Manage Posts</span>
                         </a>
                       )}
 
                       <a
                         href="/profile"
-                        class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-text-muted no-underline hover:bg-white/5 hover:text-white transition-all group/item"
+                        class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm text-text-muted no-underline hover:bg-surface-subtle hover:text-text transition-all group/item"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -281,12 +295,12 @@ const userAvatar =
                             <circle cx="12" cy="7" r="4" />
                           </>
                         </svg>
-                        <span>Profile Info</span>
+                        <span class="font-medium">Profile Info</span>
                       </a>
 
                       <a
                         href="/profile?tab=activity"
-                        class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-text-muted no-underline hover:bg-white/5 hover:text-white transition-all group/item"
+                        class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm text-text-muted no-underline hover:bg-surface-subtle hover:text-text transition-all group/item"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -302,12 +316,12 @@ const userAvatar =
                         >
                           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                         </svg>
-                        <span>My Activity</span>
+                        <span class="font-medium">My Activity</span>
                       </a>
 
-                      <div class="h-px bg-white/5 mx-2 my-1" />
+                      <div class="h-px bg-border mx-2 my-1" />
 
-                      <SignOut class="btn-logout-dropdown bg-transparent border-none cursor-pointer flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-text-muted w-full hover:bg-primary/10 hover:text-primary transition-all group/item">
+                      <SignOut class="btn-logout-dropdown bg-transparent border-none cursor-pointer flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm text-text-muted w-full hover:bg-primary/10 hover:text-primary transition-all group/item">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="18"
@@ -326,13 +340,13 @@ const userAvatar =
                             <line x1="21" y1="12" x2="9" y2="12" />
                           </>
                         </svg>
-                        <span class="font-bold">Logout</span>
+                        <span class="font-semibold">Logout</span>
                       </SignOut>
                     </Dropdown>
                   ) : (
                     <a
                       href="/login"
-                      class="flex items-center gap-2 bg-primary text-white py-2 px-5 rounded-full font-semibold text-sm border-none cursor-pointer transition-all duration-300 no-underline leading-normal hover:bg-secondary hover:-translate-y-0.5 hover:shadow-[0_5px_15px_rgba(246,48,73,0.4)]"
+                      class="flex items-center gap-2 bg-primary text-white py-2 px-5 rounded-full font-semibold text-sm border-none cursor-pointer transition-all duration-300 no-underline leading-normal hover:bg-secondary hover:-translate-y-0.5 shadow-[0_2px_8px_rgba(188,56,56,0.25)]"
                     >
                       Login
                     </a>
@@ -348,26 +362,26 @@ const userAvatar =
       <slot />
     </main>
     <footer
-      class="py-16 px-4 text-center text-text-muted border-t border-white/5"
+      class="py-16 px-4 text-center text-text-muted border-t border-border mt-20"
     >
       <div class="container">
         <div class="flex flex-col lg:flex-row justify-center items-center gap-x-8 gap-y-4 mb-8">
           <div class="flex items-center gap-x-8 gap-y-4">
             <a
               href="/"
-              class="text-text-muted text-[0.95rem] font-medium hover:text-white transition-colors no-underline py-2"
+              class="text-text-muted text-[0.95rem] font-medium hover:text-primary transition-colors no-underline py-2"
               >หน้าหลัก</a
             >
             <span class="opacity-30 hidden sm:inline">•</span>
             <a
               href="/about"
-              class="text-text-muted text-[0.95rem] font-medium hover:text-white transition-colors no-underline py-2"
+              class="text-text-muted text-[0.95rem] font-medium hover:text-primary transition-colors no-underline py-2"
               >เกี่ยวกับผม</a
             >
             <span class="opacity-30 hidden sm:inline">•</span>
             <a
               href="/blog"
-              class="text-text-muted text-[0.95rem] font-medium hover:text-white transition-colors no-underline py-2"
+              class="text-text-muted text-[0.95rem] font-medium hover:text-primary transition-colors no-underline py-2"
               >รวมบันทึก</a
             >
           </div>
@@ -375,13 +389,13 @@ const userAvatar =
           <div class="flex items-center gap-x-8 gap-y-4">
             <a
               href="/privacy"
-              class="text-text-muted text-[0.95rem] font-medium hover:text-white transition-colors no-underline py-2"
+              class="text-text-muted text-[0.95rem] font-medium hover:text-primary transition-colors no-underline py-2"
               >นโยบายความเป็นส่วนตัว</a
             >
             <span class="opacity-30 hidden sm:inline">•</span>
             <a
               href="/terms"
-              class="text-text-muted text-[0.95rem] font-medium hover:text-white transition-colors no-underline py-2"
+              class="text-text-muted text-[0.95rem] font-medium hover:text-primary transition-colors no-underline py-2"
               >ข้อตกลงการใช้งาน</a
             >
           </div>

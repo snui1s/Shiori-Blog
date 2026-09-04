@@ -1,0 +1,79 @@
+---
+// ThemeToggle.astro - Minimalist Japanese Theme Switcher
+---
+
+<button
+  id="theme-toggle"
+  type="button"
+  aria-label="Toggle Theme"
+  class="relative w-9 h-9 rounded-full flex items-center justify-center bg-surface border border-border text-text hover:border-primary/50 hover:text-primary transition-all duration-300 cursor-pointer shadow-xs group"
+  title="สลับโหมดสว่าง / มืด"
+>
+  {/* Sun Icon (shown in dark mode to switch to light) */}
+  <svg
+    id="theme-toggle-sun"
+    xmlns="http://www.w3.org/2000/svg"
+    width="17"
+    height="17"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    class="hidden dark:block transition-transform duration-300 group-hover:rotate-45"
+  >
+    <circle cx="12" cy="12" r="4"></circle>
+    <path d="M12 2v2"></path>
+    <path d="M12 20v2"></path>
+    <path d="m4.93 4.93 1.41 1.41"></path>
+    <path d="m17.66 17.66 1.41 1.41"></path>
+    <path d="M2 12h2"></path>
+    <path d="M20 12h2"></path>
+    <path d="m6.34 17.66-1.41 1.41"></path>
+    <path d="m19.07 4.93-1.41 1.41"></path>
+  </svg>
+
+  {/* Moon Icon (shown in light mode to switch to dark) */}
+  <svg
+    id="theme-toggle-moon"
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    class="block dark:hidden transition-transform duration-300 group-hover:-rotate-12"
+  >
+    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+  </svg>
+</button>
+
+<script is:inline>
+  function setupThemeToggle() {
+    const toggleBtn = document.getElementById("theme-toggle");
+    if (!toggleBtn) return;
+
+    // Remove existing listener to avoid duplicates
+    toggleBtn.replaceWith(toggleBtn.cloneNode(true));
+    const newToggleBtn = document.getElementById("theme-toggle");
+
+    newToggleBtn?.addEventListener("click", () => {
+      const isDark = document.documentElement.classList.contains("dark");
+      if (isDark) {
+        document.documentElement.classList.remove("dark");
+        localStorage.setItem("shiori-theme", "light");
+      } else {
+        document.documentElement.classList.add("dark");
+        localStorage.setItem("shiori-theme", "dark");
+      }
+    });
+  }
+
+  // Setup on page load and on Astro navigation
+  document.addEventListener("DOMContentLoaded", setupThemeToggle);
+  document.addEventListener("astro:page-load", setupThemeToggle);
+</script>

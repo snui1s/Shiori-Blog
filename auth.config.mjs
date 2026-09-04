@@ -3,6 +3,7 @@ import Credentials from "@auth/core/providers/credentials";
 import { defineConfig } from "auth-astro";
 import { db, User, eq } from "astro:db";
 import bcrypt from "bcryptjs";
+import { checkRateLimit, resetRateLimit } from "./src/lib/rate-limit.ts";
 
 export default defineConfig({
 	providers: [
@@ -24,6 +25,15 @@ export default defineConfig({
 					return null;
 				}
 
+				// Rate limiting: Max 5 login attempts per 15 minutes per email (generous in dev)
+				const emailKey = `login:${String(credentials.email).toLowerCase().trim()}`;
+				const maxAttempts = process.env.NODE_ENV === 'development' ? 30 : 5;
+				const loginLimit = checkRateLimit(emailKey, maxAttempts, 15 * 60 * 1000);
+				if (!loginLimit.allowed) {
+					console.log("Login rate limit exceeded for email:", credentials.email);
+					return null;
+				}
+
 				const user = await db
 					.select()
 					.from(User)
@@ -31,7 +41,7 @@ export default defineConfig({
 					.get();
 
 				if (!user) {
-					console.log("User not found by email");
+					console.log("User not found by email:", credentials.email);
 					return null;
 				}
 				
@@ -46,13 +56,16 @@ export default defineConfig({
 				);
 
 				if (process.env.NODE_ENV === 'development') {
-					console.log("Password check result:", isValidPassword);
+					console.log("Password check result for", credentials.email, ":", isValidPassword);
 				}
 
 				if (!isValidPassword) {
-					console.log("Invalid password");
+					console.log("Invalid password for email:", credentials.email);
 					return null;
 				}
+
+				// Reset rate limit counter upon successful password verification
+				resetRateLimit(emailKey);
 
 				return {
 					id: user.id,

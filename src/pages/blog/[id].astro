@@ -7,6 +7,8 @@ import { getOptimizedImageUrl } from "../../lib/images";
 import Comments from "../../components/Comments";
 import RelatedPosts from "../../components/RelatedPosts.astro";
 import { getOptimizedContentHtml } from "../../lib/images";
+import ReadingProgressBar from "../../components/ReadingProgressBar.astro";
+import TableOfContents from "../../components/TableOfContents.astro";
 
 const session = await getSession(Astro.request);
 
@@ -33,7 +35,7 @@ const [entry] = await db
   .where(eq(Post.slug, id as string));
 
 if (!entry) {
-  return Astro.redirect("/404");
+  return Astro.rewrite("/404");
 }
 
 const entryImageUrl =
@@ -105,6 +107,9 @@ const breadcrumbJsonLd = {
   image={post.image}
   type="article"
 >
+  <ReadingProgressBar />
+  <TableOfContents />
+
   <script is:inline>
     function handleDetailImageError(img) {
       img.onerror = null;
@@ -122,30 +127,33 @@ const breadcrumbJsonLd = {
     type="application/ld+json"
     set:html={JSON.stringify(breadcrumbJsonLd)}
   />
-  <article class="container py-12 md:py-24 max-w-[1100px] mx-auto px-6 md:px-12 lg:px-6">
-    <header class="text-center mb-16 max-w-[950px] mx-auto reveal">
-      <span
-        class="text-primary uppercase font-bold text-[0.8rem] tracking-[0.3em] mb-4 block"
-        >{post.category}</span
-      >
+
+  <article class="container py-8 md:py-16 max-w-[1000px] mx-auto px-4 sm:px-6 lg:px-8">
+    <header class="text-center mb-12 max-w-[850px] mx-auto reveal">
+      <div class="inline-flex items-center gap-2 mb-3">
+        <span class="paper-tag">{post.category}</span>
+      </div>
       <h1
-        class="text-3xl md:text-[3.25rem] mt-4 mb-8 leading-[1.2] font-black h-gradient text-balance py-4"
+        class="text-3xl sm:text-4xl md:text-5xl mt-2 mb-6 leading-tight font-extrabold text-text text-balance"
       >
         {post.title}
       </h1>
       <div
-        class="flex justify-center items-center mt-8 text-text-muted/60 text-[0.9rem] font-medium stagger-1 reveal"
+        class="flex justify-center items-center text-text-muted text-sm font-medium stagger-1 reveal"
       >
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2.5">
           <span>{post.date}</span>
-          <div class="w-1 h-1 bg-white/20 rounded-full"></div>
-          <span class="text-white/80">By {post.author}</span>
+          <span class="opacity-30">•</span>
+          <span class="flex items-center gap-1.5">
+            <span class="hanko-stamp text-xs">栞</span>
+            <span>{post.author}</span>
+          </span>
         </div>
       </div>
     </header>
 
     <div
-      class="w-full max-w-[1000px] h-[300px] md:h-[500px] mx-auto mb-16 overflow-hidden rounded-4xl glass-premium shadow-2xl reveal stagger-2 skeleton"
+      class="w-full max-w-[940px] aspect-16/10 sm:h-[440px] mx-auto mb-12 overflow-hidden rounded-2xl border border-border shadow-xs reveal stagger-2"
     >
       <Image
         src={post.optimizedImage}
@@ -154,19 +162,21 @@ const breadcrumbJsonLd = {
         height={600}
         loading="eager"
         fetchpriority="high"
-        class="w-full h-full object-cover grayscale-[0.2] hover:grayscale-0 transition-all duration-1000 scale-105 hover:scale-100"
+        class="w-full h-full object-cover transition-transform duration-1000 ease-out hover:scale-102"
       />
     </div>
 
     <div
-      class="glass-premium p-8 md:p-20 rounded-[3rem] text-base md:text-[1.125rem] leading-relaxed md:leading-[1.9] text-slate-300 w-full mb-20 reveal stagger-3 border border-white/5 shadow-2xl"
+      class="card-editorial p-6 sm:p-10 md:p-14 rounded-2xl text-base md:text-lg leading-relaxed text-text w-full mb-16 reveal stagger-3 border border-border"
     >
-      <p
-        class="post-excerpt text-lg md:text-[1.3rem] text-white font-bold mb-12 leading-[1.4] border-l-8 border-primary pl-8 md:pl-14 py-8 md:py-12 pr-8 md:pr-12 bg-white/3 rounded-r-4xl italic shadow-2xl relative overflow-hidden"
-      >
-        <span class="relative z-10">{post.excerpt}</span>
-      </p>
-      <div class="rich-text-content" set:html={post.content} />
+      {post.excerpt && (
+        <p
+          class="post-excerpt text-base md:text-lg text-text font-medium mb-10 leading-relaxed border-l-4 border-primary pl-6 py-3 bg-surface-subtle rounded-r-xl"
+        >
+          {post.excerpt}
+        </p>
+      )}
+      <div class="rich-text-content text-text" set:html={post.content} />
     </div>
 
     <Comments
@@ -182,27 +192,27 @@ const breadcrumbJsonLd = {
       currentCategory={entry.category} 
     />
 
-    <footer class="mt-24 pt-16 border-t border-white/5 flex justify-center">
+    <footer class="mt-16 pt-12 border-t border-border flex justify-center">
       <a
-        href="/"
-        class="group inline-flex items-center gap-3 py-4 px-10 bg-white/3 border border-white/10 rounded-full text-white font-semibold transition-all duration-400 no-underline hover:bg-primary hover:border-primary hover:-translate-y-1 hover:shadow-[0_10px_25px_rgba(246,48,73,0.3)]"
+        href="/blog"
+        class="group inline-flex items-center gap-2.5 py-3 px-8 bg-surface border border-border rounded-full text-text font-semibold text-sm transition-all duration-300 no-underline hover:border-primary hover:text-primary hover:-translate-y-0.5 shadow-xs"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
+          width="18"
+          height="18"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
-          class="transition-transform duration-300 group-hover:-translate-x-1.5"
+          class="transition-transform duration-300 group-hover:-translate-x-1"
         >
           <line x1="19" y1="12" x2="5" y2="12"></line>
           <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
-        กลับหน้าหลัก
+        กลับหน้ารวมบันทึก
       </a>
     </footer>
   </article>

@@ -7,6 +7,10 @@ const session = await getSession(Astro.request);
 if (session) {
   return Astro.redirect("/");
 }
+
+const url = new URL(Astro.request.url);
+const initialEmail = url.searchParams.get("email") || "";
+const initialPassword = url.searchParams.get("password") || "";
 ---
 
 <Layout title="Login">
@@ -14,67 +18,72 @@ if (session) {
     class="min-h-screen flex items-center justify-center bg-bg p-4 relative overflow-hidden"
   >
     <div
-      class="login-card glass p-8 md:p-12 rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.3)] w-full max-w-[520px] z-[2] border border-white/5 animate-slide-up"
+      class="login-card bg-surface p-8 md:p-10 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.15)] w-full max-w-[480px] z-[2] border border-border animate-slide-up"
     >
+      <div class="flex justify-center mb-4">
+        <span class="hanko-stamp text-sm">栞</span>
+      </div>
       <h1
-        class="text-[2rem] font-extrabold text-white mb-2 text-center -tracking-[0.5px]"
+        class="text-2xl md:text-3xl font-extrabold text-text mb-2 text-center tracking-tight"
       >
         ยินดีต้อนรับกลับมา
       </h1>
-      <p class="text-text-muted text-center mb-10 text-base leading-relaxed">
-        กรุณากรอกข้อมูลเพื่อเข้าสู่ระบบ
+      <p class="text-text-muted text-center mb-8 text-sm leading-relaxed">
+        กรุณากรอกข้อมูลเพื่อเข้าสู่ระบบ Shiori
       </p>
 
-      <form class="login-form flex flex-col gap-6">
-        <div class="flex flex-col gap-2">
-          <label for="email" class="text-[0.9rem] font-medium text-white ml-1"
+      <form method="POST" class="login-form flex flex-col gap-5">
+        <div class="flex flex-col gap-1.5">
+          <label for="email" class="text-xs font-semibold text-text ml-1"
             >อีเมล</label
           >
           <input
             type="email"
             id="email"
             name="email"
+            value={initialEmail}
             placeholder="กรอกอีเมลของคุณ"
             required
-            class="py-3.5 px-5 bg-white/5 border border-white/10 rounded-xl text-base text-white outline-none transition-all duration-300 focus:bg-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 placeholder:text-white/30"
+            class="py-3 px-4 bg-surface-subtle border border-border rounded-xl text-sm md:text-base text-text outline-none transition-all duration-300 focus:bg-surface focus:border-primary/50 focus:ring-2 focus:ring-primary/10 placeholder:text-text-subtle"
           />
         </div>
 
-        <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-1.5">
           <label
             for="password"
-            class="text-[0.9rem] font-medium text-white ml-1">รหัสผ่าน</label
+            class="text-xs font-semibold text-text ml-1">รหัสผ่าน</label
           >
           <input
             type="password"
             id="password"
             name="password"
+            value={initialPassword}
             placeholder="กรอกรหัสผ่าน"
             required
-            class="py-3.5 px-5 bg-white/5 border border-white/10 rounded-xl text-base text-white outline-none transition-all duration-300 focus:bg-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 placeholder:text-white/30"
+            class="py-3 px-4 bg-surface-subtle border border-border rounded-xl text-sm md:text-base text-text outline-none transition-all duration-300 focus:bg-surface focus:border-primary/50 focus:ring-2 focus:ring-primary/10 placeholder:text-text-subtle"
           />
         </div>
 
         <button
           type="submit"
-          class="bg-primary text-white py-4 rounded-xl text-[1.1rem] font-semibold transition-all duration-300 mt-2 shadow-[0_4px_12px_rgba(246,48,73,0.3)] hover:bg-secondary hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(246,48,73,0.4)] cursor-pointer"
+          class="bg-primary text-white py-3.5 rounded-xl text-base font-semibold transition-all duration-300 mt-2 shadow-[0_2px_10px_rgba(188,56,56,0.25)] hover:bg-secondary hover:-translate-y-0.5 cursor-pointer"
           >เข้าสู่ระบบ</button
         >
       </form>
 
       <div
-        class="flex items-center gap-3 my-8 text-text-muted text-[0.9rem] font-medium before:content-[''] before:flex-1 before:h-px before:bg-white/10 after:content-[''] after:flex-1 after:h-px after:bg-white/10"
+        class="flex items-center gap-3 my-6 text-text-muted text-xs font-medium before:content-[''] before:flex-1 before:h-px before:bg-border after:content-[''] after:flex-1 after:h-px after:bg-border"
       >
-        <span class="px-3">หรือดำเนินการต่อด้วย</span>
+        <span class="px-2">หรือดำเนินการต่อด้วย</span>
       </div>
 
       <SignIn
         provider="google"
-        class="flex items-center justify-center gap-3 w-full py-3.5 bg-white rounded-xl text-base font-semibold text-[#1a1a1a] transition-all duration-200 hover:bg-[#f0f0f0] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] cursor-pointer"
+        class="flex items-center justify-center gap-3 w-full py-3 bg-surface rounded-xl text-sm font-semibold text-text border border-border transition-all duration-200 hover:bg-surface-subtle hover:-translate-y-0.5 shadow-xs cursor-pointer"
         options={{ callbackUrl: "/" }}
       >
         <svg
-          class="w-6 h-6"
+          class="w-5 h-5"
           viewBox="0 0 24 24"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -91,13 +100,13 @@ if (session) {
             d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             fill="#EA4335"></path>
         </svg>
-        <span>Google</span>
+        <span>Google Account</span>
       </SignIn>
 
-      <p class="text-center mt-8 text-[0.95rem] text-text-muted">
+      <p class="text-center mt-6 text-sm text-text-muted">
         ยังไม่มีบัญชี? <a
           href="/signup"
-          class="text-primary font-bold no-underline hover:text-secondary hover:underline transition-colors"
+          class="text-primary font-semibold no-underline hover:underline transition-colors"
           >ลงทะเบียน</a
         >
       </p>
@@ -124,73 +133,25 @@ if (session) {
     import { signIn } from "auth-astro/client";
     import toast from "react-hot-toast";
 
-    const form = document.querySelector(".login-form") as HTMLFormElement;
+    function setupLoginForm() {
+      const form = document.querySelector(".login-form") as HTMLFormElement;
+      if (!form || form.dataset.initialized === "true") return;
+      form.dataset.initialized = "true";
 
-    // Check for error in URL (e.g. from OAuth redirect failure)
-    const urlParams = new URL(window.location.href).searchParams;
-    const error = urlParams.get("error");
-    if (error) {
-      if (error === "CredentialsSignin") {
-        toast.error("อีเมลหรือรหัสผ่านไม่ถูกต้อง", {
-          position: "top-center",
-        });
-      } else {
-        toast.error("เกิดข้อผิดพลาดในการเข้าสู่ระบบ", {
-          position: "top-center",
-        });
-      }
-      // Clean URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
+      const urlParams = new URL(window.location.href).searchParams;
+      const error = urlParams.get("error");
+      const qEmail = urlParams.get("email");
+      const qPassword = urlParams.get("password");
 
-    form?.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const formData = new FormData(form);
-      const email = formData.get("email");
-      const password = formData.get("password");
-      const submitBtn = form.querySelector(
-        'button[type="submit"]',
-      ) as HTMLButtonElement;
+      const emailInput = form.querySelector('input[name="email"]') as HTMLInputElement;
+      const passwordInput = form.querySelector('input[name="password"]') as HTMLInputElement;
 
-      try {
-        submitBtn.disabled = true;
-        submitBtn.textContent = "กำลังเข้าสู่ระบบ...";
+      if (qEmail && emailInput) emailInput.value = qEmail;
+      if (qPassword && passwordInput) passwordInput.value = qPassword;
 
-        const res = await signIn("credentials", {
-          email,
-          password,
-          redirect: false,
-        } as any);
-
-        if (!res) {
-          toast.error("ไม่ได้รับตอบสนองจากเซิร์ฟเวอร์", {
-            position: "top-center",
-          });
-          submitBtn.disabled = false;
-          submitBtn.textContent = "เข้าสู่ระบบ";
-          return;
-        }
-
-        if (res.ok) {
-          toast.success("เข้าสู่ระบบสำเร็จ!", {
-            position: "top-center",
-            duration: 2000,
-          });
-
-          setTimeout(() => {
-            window.location.assign("/");
-          }, 500);
-          return;
-        }
-
-        let data;
-        try {
-          data = await res.json();
-        } catch (e) {
-          data = {};
-        }
-
-        if (data?.url && data.url.includes("error=")) {
+      // Check for error in URL (e.g. from OAuth redirect failure)
+      if (error) {
+        if (error === "CredentialsSignin") {
           toast.error("อีเมลหรือรหัสผ่านไม่ถูกต้อง", {
             position: "top-center",
           });
@@ -199,14 +160,82 @@ if (session) {
             position: "top-center",
           });
         }
-
-        submitBtn.disabled = false;
-        submitBtn.textContent = "เข้าสู่ระบบ";
-      } catch (error) {
-        toast.error("เกิดข้อผิดพลาดในการเชื่อมต่อ", { position: "top-center" });
-        submitBtn.disabled = false;
-        submitBtn.textContent = "เข้าสู่ระบบ";
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (qEmail && qPassword) {
+        // Clean URL parameters from browser bar so credentials are not exposed
+        window.history.replaceState({}, document.title, window.location.pathname);
+        setTimeout(() => {
+          form.requestSubmit();
+        }, 100);
       }
-    });
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const formData = new FormData(form);
+        const email = formData.get("email");
+        const password = formData.get("password");
+        const submitBtn = form.querySelector(
+          'button[type="submit"]',
+        ) as HTMLButtonElement;
+
+        try {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "กำลังเข้าสู่ระบบ...";
+
+          const res = await signIn("credentials", {
+            email,
+            password,
+            callbackUrl: "/",
+            redirect: false,
+          } as any);
+
+          // In auth-astro:
+          // When signIn fails, it returns the Response object with error.
+          // When signIn succeeds, it navigates to callbackUrl and returns undefined.
+          if (res) {
+            let error = "";
+            try {
+              const data = await res.json();
+              if (data?.url) {
+                const parsed = new URL(data.url, window.location.origin);
+                error = parsed.searchParams.get("error") || "";
+              }
+            } catch (err) {
+              // ignore
+            }
+
+            if (error === "CredentialsSignin") {
+              toast.error("อีเมลหรือรหัสผ่านไม่ถูกต้อง", { position: "top-center" });
+            } else {
+              toast.error("เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง", { position: "top-center" });
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = "เข้าสู่ระบบ";
+            return;
+          }
+
+          // res is undefined = success!
+          toast.success("เข้าสู่ระบบสำเร็จ!", {
+            position: "top-center",
+            duration: 2000,
+          });
+
+          setTimeout(() => {
+            window.location.assign("/");
+          }, 300);
+        } catch (error) {
+          toast.error("เกิดข้อผิดพลาดในการเชื่อมต่อ", { position: "top-center" });
+          submitBtn.disabled = false;
+          submitBtn.textContent = "เข้าสู่ระบบ";
+        }
+      });
+    }
+
+    document.addEventListener("astro:page-load", setupLoginForm);
+    setupLoginForm();
   </script>
 </Layout>

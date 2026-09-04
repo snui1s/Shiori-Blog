@@ -2,11 +2,12 @@ import { db, PostComment, Post, User, eq, asc } from "astro:db";
 import { getSession } from "auth-astro/server";
 import type { APIRoute } from "astro";
 import { validateCommentContent } from "../../lib/comments";
+import { checkRateLimit, getClientIp } from "../../lib/rate-limit";
 
 export const prerender = false;
 
 // GET: Fetch comments for a post
-export const GET: APIRoute = async ({ url }) => {
+export const GET: APIRoute = async ({ url, request }) => {
   const postIdParam = url.searchParams.get("postId");
   if (!postIdParam) {
     return new Response(JSON.stringify({ error: "Missing postId" }), { status: 400 });
@@ -18,11 +19,24 @@ export const GET: APIRoute = async ({ url }) => {
   }
 
   try {
-    const data = await db
+    // H4 Fix: Compute permissions server-side without exposing raw user IDs to the public
+    const session = await getSession(request);
+    let currentUserId: string | null = null;
+    let isAdmin = false;
+
+    if (session?.user?.email) {
+      const dbUser = await db.select().from(User).where(eq(User.email, session.user.email)).get();
+      if (dbUser) {
+        currentUserId = dbUser.id;
+        isAdmin = dbUser.role === "admin" || session.user.email === import.meta.env.ADMIN_EMAIL;
+      }
+    }
+
+    const rawComments = await db
       .select({
         id: PostComment.id,
         parentId: PostComment.parentId,
-        userId: PostComment.userId, // Added for permission checks
+        userId: PostComment.userId,
         content: PostComment.content,
         createdAt: PostComment.createdAt,
         user: {
@@ -35,9 +49,26 @@ export const GET: APIRoute = async ({ url }) => {
       .where(eq(PostComment.postId, postIdValue))
       .orderBy(asc(PostComment.createdAt));
 
-    return new Response(JSON.stringify(data), {
+    // Strip raw userId from output payload and attach safe boolean flags
+    const sanitizedComments = rawComments.map((c) => {
+      const isAuthor = currentUserId !== null && c.userId === currentUserId;
+      return {
+        id: c.id,
+        parentId: c.parentId,
+        content: c.content,
+        createdAt: c.createdAt,
+        user: c.user,
+        isAuthor,
+        canDelete: isAuthor || isAdmin,
+      };
+    });
+
+    return new Response(JSON.stringify(sanitizedComments), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "private, no-cache",
+      },
     });
   } catch (err) {
     return new Response(JSON.stringify({ error: "Database error" }), { status: 500 });
@@ -99,6 +130,16 @@ export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request);
   if (!session?.user?.email) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  }
+
+  // Rate limiting: max 5 comments per minute per user/IP
+  const clientIp = getClientIp(request);
+  const rateLimit = checkRateLimit(`comment:${session.user.email || clientIp}`, 5, 60 * 1000);
+  if (!rateLimit.allowed) {
+    return new Response(
+      JSON.stringify({ error: "คุณส่งความคิดเห็นบ่อยเกินไป กรุณารอสักครู่ก่อนลองใหม่" }),
+      { status: 429 }
+    );
   }
 
   try {

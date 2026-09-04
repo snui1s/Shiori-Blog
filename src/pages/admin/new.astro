@@ -17,11 +17,6 @@ if (!isAuthorized) {
 }
 ---
 
-<script
-  is:inline
-  src="https://upload-widget.cloudinary.com/global/all.js"
-  type="text/javascript"></script>
-
 <Layout title="เขียนบันทึกใหม่">
   <div class="container py-12 md:py-20 min-h-[90vh]">
     <div class="animate-fade-in w-full max-w-[1000px] mx-auto">
@@ -40,11 +35,12 @@ if (!isAuthorized) {
         </div>
         <a
           href="/admin"
-          class="border border-white/10 text-white px-8 py-3 rounded-full font-semibold transition-all duration-300 hover:bg-white/5 hover:border-white no-underline text-center w-full md:w-auto"
+          data-astro-reload
+          class="border border-border bg-surface text-text hover:bg-surface-subtle px-7 py-2.5 rounded-full font-semibold transition-all duration-300 no-underline text-center w-full md:w-auto shadow-xs"
           >ยกเลิกและกลับ</a
         >
       </div>
-      <Editor client:load />
+      <Editor client:only="react" />
     </div>
   </div>
 </Layout>
@@ -64,7 +60,7 @@ if (!isAuthorized) {
     animation: fade-in 0.5s ease-out;
   }
   .h-gradient {
-    background: linear-gradient(to right, #fff, #a0aec0);
+    background: linear-gradient(to right, var(--color-text), var(--color-text-muted));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;

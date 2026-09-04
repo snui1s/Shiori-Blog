@@ -20,6 +20,17 @@ export default defineConfig({
   adapter: vercel(),
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: [
+        "@tiptap/react",
+        "@tiptap/starter-kit",
+        "@tiptap/extension-image",
+        "@tiptap/extension-placeholder",
+        "@tiptap/extension-text-style",
+        "@tiptap/extension-color",
+        "@tiptap/extension-highlight",
+      ],
+    },
   },
   image: {
     domains: [

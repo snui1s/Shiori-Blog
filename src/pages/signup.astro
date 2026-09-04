@@ -14,20 +14,23 @@ if (session) {
     class="min-h-screen flex items-center justify-center bg-bg p-4 relative overflow-hidden"
   >
     <div
-      class="login-card glass p-8 md:p-12 rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.3)] w-full max-w-[520px] z-[2] border border-white/5 animate-slide-up"
+      class="login-card bg-surface p-8 md:p-10 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.15)] w-full max-w-[480px] z-[2] border border-border animate-slide-up"
     >
+      <div class="flex justify-center mb-4">
+        <span class="hanko-stamp text-sm">栞</span>
+      </div>
       <h1
-        class="text-[2rem] font-extrabold text-white mb-2 text-center -tracking-[0.5px]"
+        class="text-2xl md:text-3xl font-extrabold text-text mb-2 text-center tracking-tight"
       >
         สร้างบัญชีใหม่
       </h1>
-      <p class="text-text-muted text-center mb-10 text-base leading-relaxed">
-        กรอกข้อมูลเพื่อเริ่มต้นใช้งาน
+      <p class="text-text-muted text-center mb-8 text-sm leading-relaxed">
+        กรอกข้อมูลเพื่อเริ่มต้นใช้งาน Shiori
       </p>
 
-      <form class="login-form flex flex-col gap-6">
-        <div class="flex flex-col gap-2">
-          <label for="name" class="text-[0.9rem] font-medium text-white ml-1"
+      <form method="POST" class="login-form flex flex-col gap-5">
+        <div class="flex flex-col gap-1.5">
+          <label for="name" class="text-xs font-semibold text-text ml-1"
             >ชื่อที่แสดง</label
           >
           <input
@@ -36,12 +39,12 @@ if (session) {
             name="name"
             placeholder="Username ของคุณ"
             required
-            class="py-3.5 px-5 bg-white/5 border border-white/10 rounded-xl text-base text-white outline-none transition-all duration-300 focus:bg-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 placeholder:text-white/30"
+            class="py-3 px-4 bg-surface-subtle border border-border rounded-xl text-sm md:text-base text-text outline-none transition-all duration-300 focus:bg-surface focus:border-primary/50 focus:ring-2 focus:ring-primary/10 placeholder:text-text-subtle"
           />
         </div>
 
-        <div class="flex flex-col gap-2">
-          <label for="email" class="text-[0.9rem] font-medium text-white ml-1"
+        <div class="flex flex-col gap-1.5">
+          <label for="email" class="text-xs font-semibold text-text ml-1"
             >อีเมล</label
           >
           <input
@@ -50,19 +53,19 @@ if (session) {
             name="email"
             placeholder="name@example.com"
             required
-            class="py-3.5 px-5 bg-white/5 border border-white/10 rounded-xl text-base text-white outline-none transition-all duration-300 focus:bg-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 placeholder:text-white/30"
+            class="py-3 px-4 bg-surface-subtle border border-border rounded-xl text-sm md:text-base text-text outline-none transition-all duration-300 focus:bg-surface focus:border-primary/50 focus:ring-2 focus:ring-primary/10 placeholder:text-text-subtle"
           />
           <p
-            class="text-[#ff4d4d] text-[0.85rem] mt-1 empty:hidden"
+            class="text-[#dc2626] text-xs mt-1 empty:hidden"
             id="email-error"
           >
           </p>
         </div>
 
-        <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-1.5">
           <label
             for="password"
-            class="text-[0.9rem] font-medium text-white ml-1">รหัสผ่าน</label
+            class="text-xs font-semibold text-text ml-1">รหัสผ่าน</label
           >
           <input
             type="password"
@@ -71,14 +74,14 @@ if (session) {
             placeholder="ตั้งรหัสผ่าน (อย่างน้อย 8 ตัวอักษร)"
             minlength="8"
             required
-            class="py-3.5 px-5 bg-white/5 border border-white/10 rounded-xl text-base text-white outline-none transition-all duration-300 focus:bg-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 placeholder:text-white/30"
+            class="py-3 px-4 bg-surface-subtle border border-border rounded-xl text-sm md:text-base text-text outline-none transition-all duration-300 focus:bg-surface focus:border-primary/50 focus:ring-2 focus:ring-primary/10 placeholder:text-text-subtle"
           />
         </div>
 
-        <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-1.5">
           <label
             for="confirm-password"
-            class="text-[0.9rem] font-medium text-white ml-1"
+            class="text-xs font-semibold text-text ml-1"
             >ยืนยันรหัสผ่าน</label
           >
           <input
@@ -88,10 +91,10 @@ if (session) {
             placeholder="กรอกรหัสผ่านอีกครั้ง"
             minlength="8"
             required
-            class="py-3.5 px-5 bg-white/5 border border-white/10 rounded-xl text-base text-white outline-none transition-all duration-300 focus:bg-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 placeholder:text-white/30"
+            class="py-3 px-4 bg-surface-subtle border border-border rounded-xl text-sm md:text-base text-text outline-none transition-all duration-300 focus:bg-surface focus:border-primary/50 focus:ring-2 focus:ring-primary/10 placeholder:text-text-subtle"
           />
           <p
-            class="text-[#ff4d4d] text-[0.85rem] mt-1 empty:hidden"
+            class="text-[#dc2626] text-xs mt-1 empty:hidden"
             id="password-error"
           >
           </p>
@@ -99,24 +102,24 @@ if (session) {
 
         <button
           type="submit"
-          class="bg-primary text-white py-4 rounded-xl text-[1.1rem] font-semibold transition-all duration-300 mt-2 shadow-[0_4px_12px_rgba(246,48,73,0.3)] hover:bg-secondary hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(246,48,73,0.4)] cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+          class="bg-primary text-white py-3.5 rounded-xl text-base font-semibold transition-all duration-300 mt-2 shadow-[0_2px_10px_rgba(188,56,56,0.25)] hover:bg-secondary hover:-translate-y-0.5 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
           id="submit-btn">ลงทะเบียน</button
         >
       </form>
 
       <div
-        class="flex items-center gap-3 my-8 text-text-muted text-[0.9rem] font-medium before:content-[''] before:flex-1 before:h-px before:bg-white/10 after:content-[''] after:flex-1 after:h-px after:bg-white/10"
+        class="flex items-center gap-3 my-6 text-text-muted text-xs font-medium before:content-[''] before:flex-1 before:h-px before:bg-border after:content-[''] after:flex-1 after:h-px after:bg-border"
       >
-        <span class="px-3">หรือดำเนินการต่อด้วย</span>
+        <span class="px-2">หรือดำเนินการต่อด้วย</span>
       </div>
 
       <SignIn
         provider="google"
-        class="flex items-center justify-center gap-3 w-full py-3.5 bg-white rounded-xl text-base font-semibold text-[#1a1a1a] transition-all duration-200 hover:bg-[#f0f0f0] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] cursor-pointer"
+        class="flex items-center justify-center gap-3 w-full py-3 bg-surface rounded-xl text-sm font-semibold text-text border border-border transition-all duration-200 hover:bg-surface-subtle hover:-translate-y-0.5 shadow-xs cursor-pointer"
         options={{ callbackUrl: "/" }}
       >
         <svg
-          class="w-6 h-6"
+          class="w-5 h-5"
           viewBox="0 0 24 24"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -133,13 +136,13 @@ if (session) {
             d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             fill="#EA4335"></path>
         </svg>
-        <span>Google</span>
+        <span>Google Account</span>
       </SignIn>
 
-      <p class="text-center mt-8 text-[0.95rem] text-text-muted">
+      <p class="text-center mt-6 text-sm text-text-muted">
         มีบัญชีอยู่แล้ว? <a
           href="/login"
-          class="text-primary font-bold no-underline hover:text-secondary hover:underline transition-colors"
+          class="text-primary font-semibold no-underline hover:underline transition-colors"
           >เข้าสู่ระบบ</a
         >
       </p>
@@ -165,83 +168,94 @@ if (session) {
   <script>
     import toast from "react-hot-toast";
 
-    const form = document.querySelector(".login-form") as HTMLFormElement;
-    const passwordInput = document.getElementById(
-      "password",
-    ) as HTMLInputElement;
-    const confirmPasswordInput = document.getElementById(
-      "confirm-password",
-    ) as HTMLInputElement;
-    const emailInput = document.getElementById("email") as HTMLInputElement;
-    const passwordError = document.getElementById("password-error");
-    const emailError = document.getElementById("email-error");
+    function setupSignupForm() {
+      const form = document.querySelector(".login-form") as HTMLFormElement;
+      if (!form || form.dataset.initialized === "true") return;
+      form.dataset.initialized = "true";
 
-    function validatePassword() {
-      if (passwordInput.value !== confirmPasswordInput.value) {
-        if (passwordError) passwordError.textContent = "รหัสผ่านไม่ตรงกัน";
-        confirmPasswordInput.setCustomValidity("รหัสผ่านไม่ตรงกัน");
-      } else {
-        if (passwordError) passwordError.textContent = "";
-        confirmPasswordInput.setCustomValidity("");
-      }
-    }
+      const passwordInput = document.getElementById(
+        "password",
+      ) as HTMLInputElement;
+      const confirmPasswordInput = document.getElementById(
+        "confirm-password",
+      ) as HTMLInputElement;
+      const emailInput = document.getElementById("email") as HTMLInputElement;
+      const passwordError = document.getElementById("password-error");
+      const emailError = document.getElementById("email-error");
 
-    function validateEmail() {
-      if (emailInput.validity.typeMismatch) {
-        if (emailError) emailError.textContent = "รูปแบบอีเมลไม่ถูกต้อง";
-      } else {
-        if (emailError) emailError.textContent = "";
-      }
-    }
-
-    passwordInput.addEventListener("input", validatePassword);
-    confirmPasswordInput.addEventListener("input", validatePassword);
-    emailInput.addEventListener("input", validateEmail);
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      validatePassword();
-      if (!form.checkValidity()) return;
-
-      const formData = new FormData(form);
-      const submitBtn = form.querySelector(
-        'button[type="submit"]',
-      ) as HTMLButtonElement;
-
-      try {
-        submitBtn.disabled = true;
-        submitBtn.textContent = "กำลังลงทะเบียน...";
-
-        const res = await fetch("/api/auth/register", {
-          method: "POST",
-          body: formData,
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-          toast.success("ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ", {
-            duration: 4000,
-            position: "top-center",
-          });
-          setTimeout(() => {
-            window.location.href = "/login";
-          }, 1500);
+      function validatePassword() {
+        if (!passwordInput || !confirmPasswordInput) return;
+        if (passwordInput.value !== confirmPasswordInput.value) {
+          if (passwordError) passwordError.textContent = "รหัสผ่านไม่ตรงกัน";
+          confirmPasswordInput.setCustomValidity("รหัสผ่านไม่ตรงกัน");
         } else {
-          toast.error(data.message || "การลงทะเบียนล้มเหลว", {
+          if (passwordError) passwordError.textContent = "";
+          confirmPasswordInput.setCustomValidity("");
+        }
+      }
+
+      function validateEmail() {
+        if (!emailInput) return;
+        if (emailInput.validity.typeMismatch) {
+          if (emailError) emailError.textContent = "รูปแบบอีเมลไม่ถูกต้อง";
+        } else {
+          if (emailError) emailError.textContent = "";
+        }
+      }
+
+      passwordInput?.addEventListener("input", validatePassword);
+      confirmPasswordInput?.addEventListener("input", validatePassword);
+      emailInput?.addEventListener("input", validateEmail);
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        validatePassword();
+        if (!form.checkValidity()) return;
+
+        const formData = new FormData(form);
+        const submitBtn = form.querySelector(
+          'button[type="submit"]',
+        ) as HTMLButtonElement;
+
+        try {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "กำลังลงทะเบียน...";
+
+          const res = await fetch("/api/auth/register", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await res.json();
+
+          if (data.success) {
+            toast.success("ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ", {
+              duration: 4000,
+              position: "top-center",
+            });
+            setTimeout(() => {
+              window.location.href = "/login";
+            }, 1500);
+          } else {
+            toast.error(data.message || "การลงทะเบียนล้มเหลว", {
+              position: "top-center",
+            });
+            submitBtn.disabled = false;
+            submitBtn.textContent = "ลงทะเบียน";
+          }
+        } catch (error) {
+          toast.error("เกิดข้อผิดพลาดในการเชื่อมต่อ", {
             position: "top-center",
           });
           submitBtn.disabled = false;
           submitBtn.textContent = "ลงทะเบียน";
         }
-      } catch (error) {
-        console.error("Register Error:", error);
-        toast.error("เกิดข้อผิดพลาดในการเชื่อมต่อ", {
-          position: "top-center",
-        });
-        submitBtn.disabled = false;
-        submitBtn.textContent = "ลงทะเบียน";
-      }
-    });
+      });
+    }
+
+    document.addEventListener("astro:page-load", setupSignupForm);
+    setupSignupForm();
   </script>
 </Layout>
