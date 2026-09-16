@@ -50,5 +50,15 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
     "vitest": "^4.0.18"
+  },
+  "overrides": {
+    "htmlparser2": "10.1.0",
+    "sanitize-html": {
+      "htmlparser2": "10.1.0"
+    }
+  },
+  "resolutions": {
+    "htmlparser2": "10.1.0",
+    "sanitize-html/htmlparser2": "10.1.0"
   }
 }
