@@ -1,12 +1,25 @@
 import type { APIRoute } from "astro";
 import { db, User, eq } from "astro:db";
 import bcrypt from "bcryptjs";
-import { nanoid } from "nanoid";
 import { validateRegistration } from "../../../lib/auth";
+import { checkRateLimit, getClientIp } from "../../../lib/rate-limit";
  
 export const prerender = false;
  
 export const POST: APIRoute = async ({ request }) => {
+  // Rate limiting: Max 5 registration attempts per 15 minutes per IP
+  const clientIp = getClientIp(request);
+  const rateLimit = checkRateLimit(`register:${clientIp}`, 5, 15 * 60 * 1000);
+  if (!rateLimit.allowed) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        message: "คุณทำรายการสมัครสมาชิกบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่",
+      }),
+      { status: 429 }
+    );
+  }
+
   try {
     const data = await request.formData();
     const name = data.get("name") as string;
@@ -36,7 +49,7 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          message: "อีเมลนี้ถูกใช้งานแล้ว",
+          message: "ไม่สามารถใช้อีเมลนี้ลงทะเบียนได้ กรุณาตรวจสอบหรือเข้าสู่ระบบ",
         }),
         { status: 400 }
       );
@@ -46,7 +59,7 @@ export const POST: APIRoute = async ({ request }) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // 4. Create new user
-    const userId = nanoid();
+    const userId = crypto.randomUUID();
 
     await db.insert(User).values({
       id: userId,

@@ -1,14 +1,18 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import { db, Post, desc, sql } from "astro:db";
-import BlogFeed from "../../components/BlogFeed";
+import { db, Post, desc, sql, like, or, eq, and } from "astro:db";
+import { getOptimizedImageUrl } from "../../lib/images";
 
 // Handle dynamic routing/rendering in Astro SSR mode
 export const prerender = false;
 
-// 1. Initial Page Load Param
+// 1. URL Query Parameters
+const url = new URL(Astro.request.url);
+const search = url.searchParams.get("search")?.trim() || "";
+const selectedCategory = url.searchParams.get("category")?.trim() || "";
+const currentPage = Math.max(1, parseInt(url.searchParams.get("page") || "1"));
 const limit = 9;
-const offset = 0;
+const offset = (currentPage - 1) * limit;
 
 // 2. Fetch Unique Categories for Filter Dropdown
 const categoriesResult = await db
@@ -17,29 +21,56 @@ const categoriesResult = await db
   .all();
 const allCategories = categoriesResult.map((c) => c.category);
 
-// 3. Fetch Initial Posts (Page 1, No Filters)
-// Note: We ignore URL queries for SSR here to keep cache simple or let client handle deep linking state manually if needed.
-// Or, if we want SSR to respect deep linking, we can parse URL here. But let's keep it simple: SSR initial load, then Client takes over.
-// Actually, it's better if SSR matches client initial state. But for "No Reload" request, Client-side primary logic is fine.
-const posts = await db
+// 3. Dynamic Filter Conditions
+const conditions = [];
+const cleanSearch = search.slice(0, 100).replace(/[%_\\]/g, " ").trim();
+if (cleanSearch) {
+  const searchPattern = `%${cleanSearch}%`;
+  conditions.push(
+    or(
+      like(Post.title, searchPattern),
+      like(Post.excerpt, searchPattern),
+      like(Post.content, searchPattern),
+    ),
+  );
+}
+if (selectedCategory) {
+  conditions.push(eq(Post.category, selectedCategory));
+}
+
+const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+// 4. Fetch Posts
+const rawPosts = await db
   .select()
   .from(Post)
+  .where(whereClause)
   .orderBy(desc(Post.createdAt))
   .limit(limit)
   .offset(offset);
 
-// 4. Total count for Initial Pagination
-const totalCountResult = await db.select({ count: sql`count(*)` }).from(Post);
-const totalCount = Number(totalCountResult[0].count);
-const totalPages = Math.ceil(totalCount / limit);
+// 5. Total Count & Pagination
+const totalCountResult = await db
+  .select({ count: sql`count(*)` })
+  .from(Post)
+  .where(whereClause);
+const totalCount = Number(totalCountResult[0]?.count || 0);
+const totalPages = Math.max(1, Math.ceil(totalCount / limit));
 
-const initialPosts = posts.map((post) => ({
-  ...post,
-  image:
-    post.imageUrl ||
-    "https://placehold.co/600x400/1a1a1a/F63049?text=Shiori+Blog",
-  createdAt: new Date(post.createdAt).toISOString(), // Serialize date for React
-}));
+// Helper function to build URLs with preserved search/filter parameters
+function buildUrl(params: { page?: number; category?: string; search?: string }) {
+  const p = new URLSearchParams();
+  const cat = params.category !== undefined ? params.category : selectedCategory;
+  const s = params.search !== undefined ? params.search : search;
+  const pg = params.page !== undefined ? params.page : currentPage;
+
+  if (s) p.set("search", s);
+  if (cat) p.set("category", cat);
+  if (pg > 1) p.set("page", pg.toString());
+
+  const qs = p.toString();
+  return `/blog${qs ? `?${qs}` : ""}`;
+}
 ---
 
 <Layout
@@ -47,27 +78,315 @@ const initialPosts = posts.map((post) => ({
   description="อ่านบันทึก เรื่องราวเทคโนโลยี และแนวคิดต่างๆ ที่น่าสนใจจาก Shiori 栞"
   type="website"
 >
-  <div class="container pt-8 pb-24 md:pt-8 md:pb-24 overflow-x-hidden">
-    <header class="mb-20 text-center reveal">
-      <h1
-        class="text-4xl md:text-6xl font-black mb-6 pt-6 gradient-text leading-tight text-balance"
-      >
+  <div class="container pt-6 pb-20 md:pt-10 md:pb-24 overflow-x-hidden">
+    <!-- Header -->
+    <header class="mb-12 text-center reveal pt-4">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold tracking-wider mb-4 border border-primary/20">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+        <span>ARCHIVE & ESSAYS</span>
+      </div>
+      <h1 class="text-3xl md:text-5xl font-extrabold mb-4 leading-tight text-text text-balance">
         บันทึกทั้งหมด
       </h1>
-      <p
-        class="text-lg md:text-xl text-text-muted max-w-[600px] mx-auto stagger-1 reveal leading-relaxed"
-      >
-        คลังความทรงจำที่รวบรวมเรื่องราวที่อาจจะสำคัญ และบันทึกมั่วๆ ของผม
+      <p class="text-base md:text-lg text-text-muted max-w-[540px] mx-auto stagger-1 reveal leading-relaxed">
+        คลังความทรงจำที่รวบรวมเรื่องราว ฮาวทู รีวิว และบันทึกข้อคิดในชีวิต
       </p>
     </header>
 
-    <div class="reveal stagger-2">
-      <BlogFeed
-        initialPosts={initialPosts}
-        allCategories={allCategories}
-        initialTotalPages={totalPages}
-        client:load
-      />
+    <!-- Search & Filter Controls -->
+    <div class="w-full mb-12 flex justify-center relative z-50">
+      <div class="w-full max-w-[800px]">
+        <div class="flex flex-col sm:flex-row gap-3 p-2 bg-surface border border-border rounded-2xl shadow-[0_4px_20px_-4px_rgba(28,25,23,0.05)] dark:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.4)]">
+          <!-- Search Input Form -->
+          <form method="GET" action="/blog" class="flex-1 flex items-center bg-surface-subtle border border-border rounded-xl overflow-hidden px-4 transition-all duration-300 focus-within:border-primary/40 focus-within:bg-surface">
+            {selectedCategory && <input type="hidden" name="category" value={selectedCategory} />}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="text-text-muted mr-3 shrink-0"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="text"
+              name="search"
+              placeholder="ค้นหาเรื่องที่สนใจ เช่น เทคโนโลยี, รีวิว, ชีวิต..."
+              value={search}
+              class="flex-1 py-3.5 bg-transparent border-none text-text outline-none text-sm md:text-base placeholder:text-text-subtle font-medium"
+            />
+            {search && (
+              <a
+                href={buildUrl({ search: "", page: 1 })}
+                class="text-xs text-text-muted hover:text-primary px-2 py-1 transition-colors no-underline"
+                title="ล้างคำค้นหา"
+              >
+                ✕
+              </a>
+            )}
+          </form>
+
+          <!-- Category Dropdown Button & Menu -->
+          <div class="relative w-full sm:min-w-[210px] sm:w-auto" id="blog-category-dropdown">
+            <button
+              type="button"
+              id="blog-category-toggle"
+              class="w-full h-full min-h-[48px] py-3 pl-4 pr-10 bg-surface-subtle border border-border rounded-xl text-text text-left font-semibold text-sm relative transition-all duration-300 hover:bg-surface cursor-pointer flex items-center justify-between"
+            >
+              <span class="truncate block max-w-[150px]">
+                {selectedCategory || "หมวดหมู่ทั้งหมด"}
+              </span>
+              <div
+                id="blog-category-chevron"
+                class="absolute right-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none transition-transform duration-300"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6"></path>
+                </svg>
+              </div>
+            </button>
+
+            <!-- Dropdown Menu items -->
+            <div
+              id="blog-category-menu"
+              class="hidden absolute top-[calc(100%+6px)] right-0 left-0 min-w-[210px] max-h-[280px] overflow-y-auto p-1.5 flex flex-col gap-1 z-100 shadow-[0_12px_36px_rgba(0,0,0,0.3)] bg-surface rounded-xl border border-border origin-top"
+            >
+              <a
+                href={buildUrl({ category: "", page: 1 })}
+                class={`px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all no-underline flex items-center justify-between ${
+                  selectedCategory === ""
+                    ? "bg-primary/10 text-primary"
+                    : "text-text-muted hover:text-text hover:bg-surface-subtle"
+                }`}
+              >
+                <span>หมวดหมู่ทั้งหมด</span>
+                {selectedCategory === "" && (
+                  <div class="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                )}
+              </a>
+              {allCategories.map((cat) => (
+                <a
+                  href={buildUrl({ category: cat, page: 1 })}
+                  class={`px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all no-underline flex items-center justify-between ${
+                    selectedCategory === cat
+                      ? "bg-primary/10 text-primary"
+                      : "text-text-muted hover:text-text hover:bg-surface-subtle"
+                  }`}
+                >
+                  <span>{cat}</span>
+                  {selectedCategory === cat && (
+                    <div class="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                  )}
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Active Filters Feedback & Reset -->
+    {(search || selectedCategory) && (
+      <div class="flex items-center justify-center gap-2 mb-8 text-xs font-medium text-text-muted">
+        <span>กำลังกรอง:</span>
+        {selectedCategory && (
+          <span class="px-2.5 py-1 rounded-full bg-primary/10 text-primary font-semibold border border-primary/20 flex items-center gap-1.5">
+            <span>หมวด: {selectedCategory}</span>
+            <a href={buildUrl({ category: "", page: 1 })} class="hover:text-primary/70 no-underline font-bold">✕</a>
+          </span>
+        )}
+        {search && (
+          <span class="px-2.5 py-1 rounded-full bg-surface border border-border text-text font-semibold flex items-center gap-1.5">
+            <span>ค้นหา: "{search}"</span>
+            <a href={buildUrl({ search: "", page: 1 })} class="hover:text-primary no-underline font-bold">✕</a>
+          </span>
+        )}
+        <a href="/blog" class="text-primary hover:underline ml-2 font-semibold">ล้างทั้งหมด</a>
+      </div>
+    )}
+
+    <!-- Posts Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7 md:gap-8 transition-opacity duration-300">
+      {rawPosts.length > 0 ? (
+        rawPosts.map((post, index) => {
+          const issueNum = String((currentPage - 1) * limit + index + 1).padStart(2, "0");
+          const displayImage = post.imageUrl || "https://placehold.co/600x400/1a1a1a/F63049?text=Shiori+Blog";
+          const formattedDate = new Date(post.createdAt).toLocaleDateString("th-TH", {
+            timeZone: "Asia/Bangkok",
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
+
+          return (
+            <article class="group relative card-editorial flex flex-col overflow-hidden transition-all duration-300">
+              <div class="bookmark-ribbon" title="Bookmark">栞</div>
+
+              <a
+                href={`/blog/${post.slug}`}
+                class="block w-full aspect-16/10 overflow-hidden bg-surface-subtle relative cursor-pointer"
+              >
+                <img
+                  src={getOptimizedImageUrl(displayImage, 600)}
+                  alt={post.title}
+                  width={600}
+                  height={375}
+                  class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  loading="lazy"
+                  onerror="this.onerror=null;this.src='https://placehold.co/600x400/1a1a1a/F63049?text=Shiori+Blog';"
+                />
+                <div class="absolute top-3 left-3 bg-surface/90 backdrop-blur-xs px-2.5 py-0.5 rounded border border-border text-[0.65rem] font-bold tracking-wider text-text-muted">
+                  No. {issueNum}
+                </div>
+              </a>
+
+              <div class="p-6 md:p-7 flex flex-col flex-1">
+                <div class="flex items-center gap-2.5 mb-3">
+                  <span class="paper-tag text-[0.7rem] px-2 py-0.5">
+                    {post.category}
+                  </span>
+                  <span class="text-xs text-text-muted font-medium">
+                    {formattedDate}
+                  </span>
+                </div>
+
+                <h2 class="text-lg md:text-xl font-bold mb-3 leading-snug">
+                  <a
+                    href={`/blog/${post.slug}`}
+                    class="text-text no-underline transition-colors duration-300 group-hover:text-primary line-clamp-2"
+                  >
+                    {post.title}
+                  </a>
+                </h2>
+
+                <p class="post-excerpt text-text-muted text-sm leading-relaxed line-clamp-2 mb-6 mt-auto">
+                  {post.excerpt}
+                </p>
+
+                <div class="pt-4 border-t border-border flex justify-between items-center text-xs text-text-muted">
+                  <span class="flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                    {post.author}
+                  </span>
+                  <a
+                    href={`/blog/${post.slug}`}
+                    class="font-semibold text-primary group-hover:translate-x-0.5 transition-transform flex items-center gap-1 no-underline"
+                  >
+                    อ่านต่อ →
+                  </a>
+                </div>
+              </div>
+            </article>
+          );
+        })
+      ) : (
+        <div class="col-span-full card-editorial py-16 text-center text-text-muted">
+          <div class="hanko-stamp mb-3 text-sm">栞</div>
+          <p class="m-0 font-medium mb-4">
+            ไม่พบบันทึกที่ค้นหา ลองเปลี่ยนคำค้นหรือเลือกหมวดหมู่อื่นดูนะครับ
+          </p>
+          <a
+            href="/blog"
+            class="inline-block px-5 py-2 rounded-full bg-primary text-white text-xs font-semibold no-underline shadow-xs hover:bg-secondary transition-colors"
+          >
+            ดูบันทึกทั้งหมด
+          </a>
+        </div>
+      )}
+    </div>
+
+    <!-- Pagination Controls -->
+    {totalPages > 1 && (
+      <div class="mt-16 flex justify-center items-center gap-3">
+        {currentPage > 1 ? (
+          <a
+            href={buildUrl({ page: currentPage - 1 })}
+            class="px-5 py-2.5 rounded-full bg-surface border border-border text-text text-sm font-semibold hover:border-primary hover:text-primary transition-all no-underline shadow-xs"
+          >
+            ← หน้าก่อนหน้า
+          </a>
+        ) : (
+          <span class="px-5 py-2.5 rounded-full bg-surface border border-border text-text text-sm font-semibold opacity-30 cursor-not-allowed shadow-xs">
+            ← หน้าก่อนหน้า
+          </span>
+        )}
+
+        <span class="flex items-center px-3 font-semibold text-sm text-text-muted">
+          {currentPage} / {totalPages}
+        </span>
+
+        {currentPage < totalPages ? (
+          <a
+            href={buildUrl({ page: currentPage + 1 })}
+            class="px-5 py-2.5 rounded-full bg-surface border border-border text-text text-sm font-semibold hover:border-primary hover:text-primary transition-all no-underline shadow-xs"
+          >
+            หน้าถัดไป →
+          </a>
+        ) : (
+          <span class="px-5 py-2.5 rounded-full bg-surface border border-border text-text text-sm font-semibold opacity-30 cursor-not-allowed shadow-xs">
+            หน้าถัดไป →
+          </span>
+        )}
+      </div>
+    )}
   </div>
 </Layout>
+
+<script is:inline>
+  function initBlogCategoryDropdown() {
+    const toggle = document.getElementById("blog-category-toggle");
+    const menu = document.getElementById("blog-category-menu");
+    const chevron = document.getElementById("blog-category-chevron");
+
+    if (!toggle || !menu) return;
+
+    function openDropdown() {
+      menu.classList.remove("hidden");
+      if (chevron) chevron.classList.add("rotate-180");
+    }
+
+    function closeDropdown() {
+      menu.classList.add("hidden");
+      if (chevron) chevron.classList.remove("rotate-180");
+    }
+
+    toggle.onclick = (e) => {
+      e.stopPropagation();
+      if (menu.classList.contains("hidden")) {
+        openDropdown();
+      } else {
+        closeDropdown();
+      }
+    };
+
+    document.onclick = (e) => {
+      if (!menu.contains(e.target) && e.target !== toggle) {
+        closeDropdown();
+      }
+    };
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initBlogCategoryDropdown);
+  } else {
+    initBlogCategoryDropdown();
+  }
+  document.addEventListener("astro:page-load", initBlogCategoryDropdown);
+</script>

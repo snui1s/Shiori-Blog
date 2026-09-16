@@ -46,21 +46,21 @@ const UPLOAD_PRESET = import.meta.env.PUBLIC_CLOUDINARY_UPLOAD_PRESET;
   <div class="min-h-screen flex items-start justify-center p-4 pt-16 md:pt-28">
     <div class="w-full max-w-[500px] animate-slide-up">
       {/* ── Avatar + Name Header ── */}
-      <div class="flex flex-col items-center mb-10">
-        <div class="relative mb-5 group">
+      <div class="flex flex-col items-center mb-8">
+        <div class="relative mb-4 group">
           <img
             id="avatar-preview"
             src={getOptimizedImageUrl(currentUser.image || "", 200) ||
-              `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name || "U")}&background=f63049&color=fff`}
+              `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name || "U")}&background=bc3838&color=fff`}
             alt={currentUser.name}
-            class="w-24 h-24 rounded-full object-cover border-2 border-white/10 shadow-lg transition-transform duration-300 group-hover:scale-105"
+            class="w-24 h-24 rounded-full object-cover border-2 border-primary/20 shadow-sm transition-transform duration-300 group-hover:scale-105"
           />
           {
             tab === "info" && (
               <button
                 type="button"
                 id="avatar-overlay-btn"
-                class="absolute inset-0 rounded-full flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-none"
+                class="absolute inset-0 rounded-full flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-none"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -81,30 +81,30 @@ const UPLOAD_PRESET = import.meta.env.PUBLIC_CLOUDINARY_UPLOAD_PRESET;
             )
           }
         </div>
-        <h1 class="text-2xl font-extrabold text-white mb-1">
+        <h1 class="text-2xl font-extrabold text-text mb-1">
           {currentUser.name}
         </h1>
-        <p class="text-sm text-text-muted">{currentUser.email}</p>
+        <p class="text-xs text-text-muted">{currentUser.email}</p>
       </div>
 
       {/* ── Tab Navigation ── */}
       <div class="flex gap-2 mb-6">
         <a
           href="/profile"
-          class={`flex-1 text-center py-3 rounded-xl text-sm font-semibold no-underline transition-all ${
+          class={`flex-1 text-center py-2.5 rounded-xl text-xs font-semibold no-underline transition-all ${
             tab === "info"
-              ? "bg-primary text-white shadow-[0_4px_12px_rgba(246,48,73,0.3)]"
-              : "bg-white/5 text-text-muted hover:bg-white/10 hover:text-white"
+              ? "bg-primary text-white shadow-xs"
+              : "bg-surface border border-border text-text-muted hover:text-text"
           }`}
         >
           ตั้งค่าโปรไฟล์
         </a>
         <a
           href="/profile?tab=activity"
-          class={`flex-1 text-center py-3 rounded-xl text-sm font-semibold no-underline transition-all ${
+          class={`flex-1 text-center py-2.5 rounded-xl text-xs font-semibold no-underline transition-all ${
             tab === "activity"
-              ? "bg-primary text-white shadow-[0_4px_12px_rgba(246,48,73,0.3)]"
-              : "bg-white/5 text-text-muted hover:bg-white/10 hover:text-white"
+              ? "bg-primary text-white shadow-xs"
+              : "bg-surface border border-border text-text-muted hover:text-text"
           }`}
         >
           กิจกรรมของฉัน
@@ -113,15 +113,15 @@ const UPLOAD_PRESET = import.meta.env.PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
       {/* ── Content Card ── */}
       <div
-        class="glass p-8 md:p-10 rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.3)] border border-white/5"
+        class="bg-surface p-7 md:p-9 rounded-2xl shadow-[0_10px_35px_rgba(0,0,0,0.1)] border border-border"
       >
         {
           tab === "info" ? (
-            <form id="profile-form" class="flex flex-col gap-6">
-              <div class="flex flex-col gap-2">
+            <form id="profile-form" class="flex flex-col gap-5">
+              <div class="flex flex-col gap-1.5">
                 <label
                   for="name-input"
-                  class="text-[0.9rem] font-medium text-white ml-1"
+                  class="text-xs font-semibold text-text ml-1"
                 >
                   ชื่อที่แสดง
                 </label>
@@ -132,23 +132,23 @@ const UPLOAD_PRESET = import.meta.env.PUBLIC_CLOUDINARY_UPLOAD_PRESET;
                   value={currentUser.name}
                   placeholder="Username ของคุณ"
                   required
-                  class="py-3.5 px-5 bg-white/5 border border-white/10 rounded-xl text-base text-white outline-none transition-all duration-300 focus:bg-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 placeholder:text-white/30"
+                  class="py-3 px-4 bg-surface-subtle border border-border rounded-xl text-sm md:text-base text-text outline-none transition-all duration-300 focus:bg-surface focus:border-primary/50 focus:ring-2 focus:ring-primary/10 placeholder:text-text-subtle"
                 />
               </div>
 
-              <div class="flex flex-col gap-2">
-                <label class="text-[0.9rem] font-medium text-white ml-1">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-text ml-1">
                   รูปโปรไฟล์
                 </label>
                 <button
                   type="button"
                   id="upload-trigger"
-                  class="py-3.5 px-5 bg-white/5 border border-dashed border-white/10 rounded-xl text-base text-text-muted outline-none transition-all duration-300 hover:bg-white/10 hover:border-primary hover:text-white cursor-pointer flex items-center justify-center gap-3"
+                  class="py-3 px-4 bg-surface-subtle border border-dashed border-border rounded-xl text-sm text-text-muted outline-none transition-all duration-300 hover:bg-surface hover:border-primary hover:text-primary cursor-pointer flex items-center justify-center gap-2.5"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
+                    width="16"
+                    height="16"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -162,27 +162,27 @@ const UPLOAD_PRESET = import.meta.env.PUBLIC_CLOUDINARY_UPLOAD_PRESET;
                   </svg>
                   <span id="upload-label">อัปโหลดรูปภาพใหม่</span>
                 </button>
-                <p class="text-[0.8rem] text-text-muted/50 ml-1">
+                <p class="text-xs text-text-muted/60 ml-1">
                   Powered by Cloudinary ☁️
                 </p>
               </div>
 
-              <div class="flex flex-col gap-2 opacity-50">
-                <label class="text-[0.9rem] font-medium text-white ml-1">
+              <div class="flex flex-col gap-1.5 opacity-60">
+                <label class="text-xs font-semibold text-text ml-1">
                   อีเมล
                 </label>
-                <div class="py-3.5 px-5 bg-white/5 border border-white/10 rounded-xl text-base text-text-muted select-none flex items-center gap-3">
+                <div class="py-3 px-4 bg-surface-subtle border border-border rounded-xl text-sm text-text-muted select-none flex items-center gap-2.5">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
+                    width="15"
+                    height="15"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     stroke-width="2"
                     stroke-linecap="round"
                     stroke-linejoin="round"
-                    class="opacity-40"
+                    class="opacity-50"
                   >
                     <rect width="20" height="16" x="2" y="4" rx="2" />
                     <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
@@ -194,7 +194,7 @@ const UPLOAD_PRESET = import.meta.env.PUBLIC_CLOUDINARY_UPLOAD_PRESET;
               <button
                 type="submit"
                 id="save-btn"
-                class="bg-primary text-white py-4 rounded-xl text-[1.1rem] font-semibold transition-all duration-300 mt-2 shadow-[0_4px_12px_rgba(246,48,73,0.3)] hover:bg-secondary hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(246,48,73,0.4)] cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                class="bg-primary text-white py-3.5 rounded-xl text-sm md:text-base font-semibold transition-all duration-300 mt-2 shadow-[0_2px_10px_rgba(188,56,56,0.25)] hover:bg-secondary hover:-translate-y-0.5 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 บันทึกการเปลี่ยนแปลง
               </button>
@@ -202,20 +202,20 @@ const UPLOAD_PRESET = import.meta.env.PUBLIC_CLOUDINARY_UPLOAD_PRESET;
           ) : (
             <div>
               {userComments.length === 0 ? (
-                <div class="text-center py-12">
-                  <p class="text-text-muted mb-6">ยังไม่มีกิจกรรมในขณะนี้</p>
+                <div class="text-center py-10">
+                  <p class="text-text-muted mb-4 text-sm">ยังไม่มีกิจกรรมในขณะนี้</p>
                   <a
                     href="/blog"
-                    class="inline-block py-3 px-8 bg-primary text-white rounded-xl font-semibold no-underline shadow-[0_4px_12px_rgba(246,48,73,0.3)] hover:bg-secondary hover:-translate-y-0.5 transition-all"
+                    class="inline-block py-2.5 px-6 bg-primary text-white rounded-xl text-sm font-semibold no-underline shadow-xs hover:bg-secondary hover:-translate-y-0.5 transition-all"
                   >
                     ไปอ่านบล็อก
                   </a>
                 </div>
               ) : (
-                <div class="flex flex-col gap-5">
+                <div class="flex flex-col gap-3.5">
                   {userComments.map((comment) => (
-                    <div class="p-5 bg-white/3 rounded-2xl border border-white/5 hover:border-white/10 transition-all">
-                      <div class="flex items-center justify-between mb-3">
+                    <div class="p-4 bg-surface-subtle rounded-xl border border-border transition-all">
+                      <div class="flex items-center justify-between mb-2">
                         <span class="text-xs font-bold text-primary">
                           {new Date(comment.createdAt).toLocaleDateString(
                             "th-TH",
@@ -224,15 +224,15 @@ const UPLOAD_PRESET = import.meta.env.PUBLIC_CLOUDINARY_UPLOAD_PRESET;
                         </span>
                         <a
                           href={`/blog/${comment.postSlug}`}
-                          class="text-xs font-medium text-text-muted no-underline hover:text-primary transition-colors"
+                          class="text-xs font-semibold text-text-muted no-underline hover:text-primary transition-colors"
                         >
                           ดูโพสต์ →
                         </a>
                       </div>
-                      <p class="text-white text-[0.95rem] leading-relaxed mb-3">
+                      <p class="text-text text-sm leading-relaxed mb-2 font-normal">
                         {comment.content}
                       </p>
-                      <p class="text-xs text-text-muted/50">
+                      <p class="text-xs text-text-muted/60 m-0">
                         ในโพสต์: {comment.postTitle}
                       </p>
                     </div>

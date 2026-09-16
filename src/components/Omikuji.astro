@@ -1,0 +1,440 @@
+---
+// Omikuji.astro - Compact Japanese Shrine Fortune with Editorial Modal (栞の御神籤)
+import { shrineFortunes } from "../data/fortunes";
+---
+
+<!-- Compact Teaser Card on the page -->
+<div class="card-editorial p-4 sm:p-6 mx-auto max-w-[880px] shadow-xs">
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+    <!-- Left: Info & Daily preview -->
+    <div class="flex items-center gap-3.5 text-left w-full sm:w-auto">
+      <div
+        class="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center font-jp text-xl font-bold text-primary shrink-0 shadow-xs"
+      >
+        籤
+      </div>
+      <div>
+        <div class="flex items-center gap-2 mb-0.5">
+          <span
+            class="text-xs uppercase tracking-widest text-primary font-bold"
+          >
+            Shiori Omikuji
+          </span>
+          <span class="text-xs text-text-muted/60">•</span>
+          <span
+            id="omikuji-teaser-rank"
+            class="paper-tag font-jp text-[0.65rem] px-2 py-0.5 font-bold"
+          >
+            大吉 Daikichi
+          </span>
+        </div>
+        <h3
+          class="text-base sm:text-lg font-extrabold text-text m-0 tracking-tight"
+        >
+          เซียมซีประจำวัน • 栞の御神籤
+        </h3>
+        <p class="text-xs text-text-muted m-0 mt-0.5 hidden sm:block">
+          เสี่ยงทายดวงชะตา การงาน สุขภาพ และคำสอนเตือนใจสไตล์ศาลเจ้าญี่ปุ่น
+        </p>
+      </div>
+    </div>
+
+    <!-- Right: Action Button -->
+    <button
+      type="button"
+      id="omikuji-open-btn"
+      class="group w-full sm:w-auto px-6 py-2.5 rounded-full bg-primary hover:bg-secondary text-white font-semibold text-xs sm:text-sm transition-all duration-300 shadow-sm hover:shadow-[0_4px_16px_rgba(188,56,56,0.25)] hover:-translate-y-0.5 cursor-pointer flex items-center justify-center gap-2 shrink-0"
+    >
+      <span
+        class="inline-block transition-transform duration-300 group-hover:scale-110"
+        >🥠</span
+      >
+      <span>เปิดดูใบเซียมซี</span>
+      <span
+        class="text-xs opacity-75 group-hover:translate-x-0.5 transition-transform"
+        >→</span
+      >
+    </button>
+  </div>
+</div>
+
+<!-- Modal Overlay -->
+<div
+  id="omikuji-modal"
+  class="fixed inset-0 z-[2000] hidden items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none"
+  aria-hidden="true"
+  role="dialog"
+  aria-modal="true"
+>
+  <!-- Modal Dialog (Authentic Japanese Long Paper Slip) -->
+  <div
+    id="omikuji-dialog"
+    class="relative w-full max-w-[540px] max-h-[90vh] overflow-y-auto bg-surface p-6 sm:p-8 md:p-9 rounded-2xl border border-border shadow-[0_20px_60px_rgba(0,0,0,0.3)] transition-all duration-300 transform scale-95 opacity-0 text-left"
+  >
+    {/* Top Japanese Header Red Line */}
+    <div class="absolute top-0 left-0 right-0 h-1.5 bg-primary"></div>
+
+    {/* Close Button */}
+    <button
+      type="button"
+      id="omikuji-close-btn"
+      class="absolute top-4 right-4 w-8 h-8 rounded-full bg-surface-subtle border border-border text-text-muted hover:text-text hover:border-primary/40 flex items-center justify-center text-sm transition-all cursor-pointer z-10"
+      aria-label="Close modal"
+    >
+      ✕
+    </button>
+
+    {/* Header & Date */}
+    <div class="text-center mb-6 pt-2">
+      <div class="inline-flex items-center gap-2 mb-1.5">
+        <span class="hanko-stamp text-xs">栞</span>
+        <span class="text-xs uppercase tracking-[0.2em] text-primary font-bold">
+          Daily Shrine Fortune
+        </span>
+      </div>
+      <h2
+        class="text-xl sm:text-2xl font-black text-text m-0 tracking-tight font-jp"
+      >
+        栞の御神籤 • ใบเซียมซีประจำวัน
+      </h2>
+      <p id="omikuji-modal-date" class="text-xs text-text-muted mt-1 mb-0">
+        ศาลเจ้าแห่งความทรงจำ
+      </p>
+    </div>
+
+    {/* Paper Slip Content with transition */}
+    <div id="omikuji-slip-content" class="transition-all duration-300 ease-out">
+      {/* Rank & Kanji Stamp */}
+      <div
+        class="flex items-center justify-between gap-3 p-4 bg-surface-subtle rounded-xl border border-border mb-5"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            id="omikuji-kanji"
+            class="w-14 h-14 rounded-xl border-2 border-primary bg-primary/10 flex items-center justify-center font-jp font-black text-2xl text-primary shrink-0 shadow-xs"
+          >
+            大吉
+          </div>
+          <div>
+            <span
+              id="omikuji-level"
+              class="block font-bold text-text text-base sm:text-lg"
+            >
+              Daikichi (โชคดีมหาศาล)
+            </span>
+            <span
+              id="omikuji-id-label"
+              class="text-xs text-text-muted font-medium"
+            >
+              ฉบับที่ 01
+            </span>
+          </div>
+        </div>
+        <span class="hanko-stamp text-xs shrink-0 font-jp">大吉大利</span>
+      </div>
+
+      {/* Classical Poem */}
+      <div
+        class="mb-5 p-4 bg-surface-subtle rounded-xl border border-border/80 text-center"
+      >
+        <p
+          id="omikuji-poem"
+          class="font-jp text-sm sm:text-base text-text leading-relaxed tracking-wider mb-2 font-medium italic"
+        >
+          "雲晴れて 月冴えわたる 冬の夜の ひかり清けく のどけかるべし"
+        </p>
+        <p
+          id="omikuji-poem-trans"
+          class="text-xs text-text-muted m-0 leading-relaxed font-normal"
+        >
+          เมฆหมอกพัดผ่าน ท้องฟ้ายามราตรีเปิดกว้าง แสงจันทร์สาดส่องสว่างไสว
+          สะอาดบริสุทธิ์และสงบเย็น
+        </p>
+      </div>
+
+      {/* Overview Summary */}
+      <div class="mb-5 p-3.5 bg-surface-subtle rounded-xl border border-border">
+        <span
+          class="text-xs font-bold text-primary uppercase tracking-wider block mb-1"
+        >
+          ✦ ภาพรวมดวงชะตา (運勢)
+        </span>
+        <p
+          id="omikuji-summary"
+          class="text-xs sm:text-sm text-text leading-relaxed font-normal m-0"
+        >
+          ช่วงเวลานี้สิ่งมัวหมองและอุปสรรคที่ค้างคาจะค่อยๆ คลี่คลาย
+          ความพยายามที่สั่งสมมาจะเริ่มผลิดอกออกผลอย่างสง่างาม
+        </p>
+      </div>
+
+      {/* Grid of Fortune Details: Wishes, Work, Health */}
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-5">
+        <div class="p-3 bg-surface-subtle rounded-xl border border-border/70">
+          <span class="block text-xs font-bold text-text mb-1">
+            <span class="text-primary font-jp font-bold">願</span> ความปรารถนา
+          </span>
+          <p
+            id="omikuji-wishes"
+            class="text-xs text-text-muted leading-relaxed m-0 font-normal"
+          >
+            สมปรารถนาตามที่ตั้งใจไว้
+          </p>
+        </div>
+
+        <div class="p-3 bg-surface-subtle rounded-xl border border-border/70">
+          <span class="block text-xs font-bold text-text mb-1">
+            <span class="text-primary font-jp font-bold">職</span> การงาน / เรียน
+          </span>
+          <p
+            id="omikuji-work"
+            class="text-xs text-text-muted leading-relaxed m-0 font-normal"
+          >
+            งานใหญ่จะราบรื่น
+          </p>
+        </div>
+
+        <div class="p-3 bg-surface-subtle rounded-xl border border-border/70">
+          <span class="block text-xs font-bold text-text mb-1">
+            <span class="text-primary font-jp font-bold">健</span> สุขภาพ
+          </span>
+          <p
+            id="omikuji-health"
+            class="text-xs text-text-muted leading-relaxed m-0 font-normal"
+          >
+            สุขภาพแข็งแรง ผ่อนคลาย
+          </p>
+        </div>
+      </div>
+
+      {/* Lucky Item & Direction */}
+      <div
+        class="p-3 bg-surface-subtle rounded-xl border border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 text-xs text-text-muted mb-6"
+      >
+        <div class="flex items-center gap-1.5">
+          <span class="text-primary font-bold">สิ่งนำโชค:</span>
+          <span id="omikuji-lucky-item" class="text-text font-medium"
+            >ชาเขียวมัทฉะร้อน</span
+          >
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="text-primary font-bold">ทิศมงคล:</span>
+          <span id="omikuji-lucky-direction" class="text-text font-medium"
+            >ทิศตะวันออก</span
+          >
+        </div>
+      </div>
+    </div>
+
+    {/* Footer Action Buttons inside modal */}
+    <div
+      class="flex items-center justify-center gap-3 pt-3 border-t border-border"
+    >
+      <button
+        type="button"
+        id="omikuji-redraw-btn"
+        class="group px-6 py-2.5 rounded-full bg-primary hover:bg-secondary text-white font-semibold text-xs sm:text-sm transition-all duration-300 shadow-sm hover:shadow-[0_4px_16px_rgba(188,56,56,0.25)] hover:-translate-y-0.5 cursor-pointer flex items-center gap-1.5"
+      >
+        <span
+          id="omikuji-modal-icon"
+          class="inline-block transition-transform duration-500 group-hover:rotate-45"
+        >
+          🎋
+        </span>
+        <span id="omikuji-modal-btn-text">เสี่ยงทายใหม่อีกครั้ง</span>
+      </button>
+
+      <button
+        type="button"
+        id="omikuji-modal-close-btn2"
+        class="px-5 py-2.5 rounded-full bg-surface border border-border text-text text-xs sm:text-sm font-semibold hover:border-primary/40 hover:text-primary transition-all cursor-pointer"
+      >
+        ปิดหน้าต่าง
+      </button>
+    </div>
+  </div>
+</div>
+
+<script define:vars={{ shrineFortunes }}>
+  let currentFortuneIndex = 0;
+
+  function renderFortune(index, isDaily) {
+    const fortune = shrineFortunes[index];
+    if (!fortune) return;
+
+    currentFortuneIndex = index;
+
+    // Teaser preview badge on the page
+    const teaserRankEl = document.getElementById("omikuji-teaser-rank");
+    if (teaserRankEl) {
+      teaserRankEl.textContent = `${fortune.levelKanji} ${fortune.level.split(" ")[0]}`;
+    }
+
+    // Modal elements
+    const kanjiEl = document.getElementById("omikuji-kanji");
+    const levelEl = document.getElementById("omikuji-level");
+    const idLabelEl = document.getElementById("omikuji-id-label");
+    const poemEl = document.getElementById("omikuji-poem");
+    const poemTransEl = document.getElementById("omikuji-poem-trans");
+    const summaryEl = document.getElementById("omikuji-summary");
+    const wishesEl = document.getElementById("omikuji-wishes");
+    const workEl = document.getElementById("omikuji-work");
+    const healthEl = document.getElementById("omikuji-health");
+    const luckyItemEl = document.getElementById("omikuji-lucky-item");
+    const luckyDirEl = document.getElementById("omikuji-lucky-direction");
+    const dateTextEl = document.getElementById("omikuji-modal-date");
+
+    if (kanjiEl) kanjiEl.textContent = fortune.levelKanji;
+    if (levelEl) levelEl.textContent = fortune.level;
+    if (idLabelEl)
+      idLabelEl.textContent = `ฉบับที่ ${String(fortune.id).padStart(2, "0")} • ศาลเจ้าแห่งความทรงจำ`;
+    if (poemEl) poemEl.textContent = `"${fortune.poem}"`;
+    if (poemTransEl) poemTransEl.textContent = fortune.poemTranslation;
+    if (summaryEl) summaryEl.textContent = fortune.summary;
+    if (wishesEl) wishesEl.textContent = fortune.wishes;
+    if (workEl) workEl.textContent = fortune.work;
+    if (healthEl) healthEl.textContent = fortune.health;
+    if (luckyItemEl) luckyItemEl.textContent = fortune.luckyItem;
+    if (luckyDirEl) luckyDirEl.textContent = fortune.luckyDirection;
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("th-TH", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+    if (dateTextEl) {
+      dateTextEl.textContent = isDaily
+        ? `ผลเซียมซีของคุณประจำวันที่ ${dateStr}`
+        : `ผลเสี่ยงทายรอบพิเศษ (${dateStr})`;
+    }
+  }
+
+  function openModal() {
+    const modal = document.getElementById("omikuji-modal");
+    const dialog = document.getElementById("omikuji-dialog");
+    if (!modal || !dialog) return;
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    modal.style.pointerEvents = "auto";
+    document.body.style.overflow = "hidden";
+
+    requestAnimationFrame(() => {
+      modal.classList.remove("opacity-0");
+      modal.classList.add("opacity-100");
+      dialog.classList.remove("scale-95", "opacity-0");
+      dialog.classList.add("scale-100", "opacity-100");
+    });
+  }
+
+  function closeModal() {
+    const modal = document.getElementById("omikuji-modal");
+    const dialog = document.getElementById("omikuji-dialog");
+    if (!modal || !dialog) return;
+
+    modal.classList.remove("opacity-100");
+    modal.classList.add("opacity-0");
+    dialog.classList.remove("scale-100", "opacity-100");
+    dialog.classList.add("scale-95", "opacity-0");
+    modal.style.pointerEvents = "none";
+    document.body.style.overflow = "";
+
+    setTimeout(() => {
+      modal.classList.remove("flex");
+      modal.classList.add("hidden");
+    }, 300);
+  }
+
+  function initOmikuji() {
+    const now = new Date();
+    const dateKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+    const savedDate = localStorage.getItem("shiori-omikuji-date");
+    const savedIndex = localStorage.getItem("shiori-omikuji-index");
+
+    let initialIndex = 0;
+    let isDaily = true;
+
+    if (savedDate === dateKey && savedIndex !== null) {
+      initialIndex = parseInt(savedIndex, 10) % shrineFortunes.length;
+    } else {
+      initialIndex =
+        (now.getFullYear() * 372 + (now.getMonth() + 1) * 31 + now.getDate()) %
+        shrineFortunes.length;
+      localStorage.setItem("shiori-omikuji-date", dateKey);
+      localStorage.setItem("shiori-omikuji-index", initialIndex.toString());
+    }
+
+    renderFortune(initialIndex, isDaily);
+
+    // Open button
+    const openBtn = document.getElementById("omikuji-open-btn");
+    if (openBtn) {
+      openBtn.onclick = openModal;
+    }
+
+    // Close buttons
+    const closeBtn = document.getElementById("omikuji-close-btn");
+    if (closeBtn) closeBtn.onclick = closeModal;
+
+    const closeBtn2 = document.getElementById("omikuji-modal-close-btn2");
+    if (closeBtn2) closeBtn2.onclick = closeModal;
+
+    // Click backdrop to close
+    const modal = document.getElementById("omikuji-modal");
+    if (modal) {
+      modal.onclick = (e) => {
+        if (e.target === modal) closeModal();
+      };
+    }
+
+    // Escape key to close
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeModal();
+    });
+
+    // Re-draw inside modal
+    const redrawBtn = document.getElementById("omikuji-redraw-btn");
+    if (redrawBtn) {
+      redrawBtn.onclick = () => {
+        const slip = document.getElementById("omikuji-slip-content");
+        const btnText = document.getElementById("omikuji-modal-btn-text");
+        const btnIcon = document.getElementById("omikuji-modal-icon");
+
+        if (btnText) btnText.textContent = "กำลังเขย่าเซียมซี...";
+        if (btnIcon) btnIcon.classList.add("rotate-180");
+        if (slip) {
+          slip.style.opacity = "0";
+          slip.style.transform = "translateY(8px)";
+        }
+
+        setTimeout(() => {
+          let nextIndex;
+          do {
+            nextIndex = Math.floor(Math.random() * shrineFortunes.length);
+          } while (
+            nextIndex === currentFortuneIndex &&
+            shrineFortunes.length > 1
+          );
+
+          renderFortune(nextIndex, false);
+
+          if (slip) {
+            slip.style.opacity = "1";
+            slip.style.transform = "translateY(0)";
+          }
+          if (btnText) btnText.textContent = "เสี่ยงทายใหม่อีกครั้ง";
+          if (btnIcon) btnIcon.classList.remove("rotate-180");
+        }, 300);
+      };
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initOmikuji);
+  } else {
+    initOmikuji();
+  }
+  document.addEventListener("astro:page-load", initOmikuji);
+</script>

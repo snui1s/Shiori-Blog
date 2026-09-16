@@ -20,7 +20,7 @@ export async function POST({ request }: { request: Request }) {
     await db.update(User)
       .set({ 
         name: name.trim(), 
-        image: image || session.user.image 
+        image: image !== undefined ? image : session.user.image 
       })
       .where(eq(User.email, session.user.email));
 

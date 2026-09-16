@@ -5,6 +5,11 @@
 export function getOptimizedImageUrl(url: string, width: number = 800) {
   if (!url) return url;
 
+  // Optimize Unsplash URLs
+  if (url.includes("images.unsplash.com") && !url.includes("?")) {
+    return `${url}?auto=format&fit=crop&w=${width}&q=80`;
+  }
+
   // Check if it's a Cloudinary URL
   if (url.includes("res.cloudinary.com")) {
     // Check if it already has transformations
@@ -23,14 +28,19 @@ export function getOptimizedImageUrl(url: string, width: number = 800) {
   return url;
 }
 
+import { sanitizeContentHtml } from "./sanitize";
+
 /**
- * Parses HTML content and optimizes all Cloudinary <img> tags within it.
+ * Parses HTML content, sanitizes it against XSS vectors, and optimizes all <img> tags within it.
  */
 export function getOptimizedContentHtml(html: string) {
   if (!html) return html;
 
-  // Regex to find <img> tags and extract their src
-  return html.replace(
+  // 1. Sanitize against XSS vectors
+  const cleanHtml = sanitizeContentHtml(html);
+
+  // 2. Regex to find <img> tags and optimize attributes
+  return cleanHtml.replace(
     /<img\s+([^>]*?)src=(['"])([^'"]+)\2([^>]*?)>/gi,
     (match, before, quote, src, after) => {
       const optimizedSrc = getOptimizedImageUrl(src, 1000); // Higher width for content images

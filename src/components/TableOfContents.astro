@@ -1,0 +1,308 @@
+---
+/**
+ * TableOfContents.astro
+ * Pure Floating Screen Table of Contents (Zero Layout Intrusion).
+ * Floats on the left of the screen, completely independent of the reading area.
+ * Can be hidden/minimized to a compact pill tab or expanded with 1 click.
+ */
+---
+
+<!-- 1. Collapsed Floating Trigger Tab (Left Edge of Screen) -->
+<button
+  id="toc-pill-tab"
+  type="button"
+  class="fixed left-3 sm:left-6 top-24 sm:top-28 z-40 hidden items-center gap-2 py-2 px-3.5 rounded-full bg-surface/90 hover:bg-surface text-text border border-border shadow-lg backdrop-blur-md transition-all duration-300 hover:border-primary hover:text-primary hover:scale-105 active:scale-95 cursor-pointer text-xs font-bold group"
+  aria-label="เปิดสารบัญเนื้อหา"
+  title="เปิดสารบัญเนื้อหา"
+>
+  <span class="w-5 h-5 rounded-md bg-primary/10 text-primary flex items-center justify-center font-serif text-xs shrink-0">
+    目
+  </span>
+  <span class="tracking-wide">สารบัญ</span>
+  <span
+    id="toc-pill-count"
+    class="text-[10px] text-text-muted px-1.5 py-0.5 rounded-full bg-surface-subtle border border-border/50 font-medium"
+  ></span>
+  <svg
+    class="w-3.5 h-3.5 text-text-muted group-hover:text-primary transition-transform group-hover:translate-x-0.5"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <polyline points="9 18 15 12 9 6"></polyline>
+  </svg>
+</button>
+
+<!-- 2. Expanded Floating Panel (Left of Screen) -->
+<div
+  id="toc-floating-panel"
+  class="fixed left-3 sm:left-6 top-24 sm:top-28 z-40 hidden w-[270px] sm:w-[290px] max-h-[calc(100vh-140px)] bg-surface/95 dark:bg-surface/90 backdrop-blur-md border border-border rounded-2xl shadow-2xl p-4 flex flex-col transition-all duration-300 hover:border-primary/40 animate-fade-in"
+>
+  <!-- Panel Header -->
+  <div class="flex items-center justify-between pb-3 border-b border-border/70 mb-3 shrink-0">
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-primary/10 text-primary text-xs font-bold font-serif">
+        目
+      </span>
+      <span class="text-xs font-bold text-text uppercase tracking-wider">สารบัญเนื้อหา</span>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <span
+        id="toc-panel-count"
+        class="text-[11px] text-text-muted px-2 py-0.5 rounded-full bg-surface-subtle border border-border/50 font-medium"
+      ></span>
+      <button
+        id="toc-hide-btn"
+        type="button"
+        title="ซ่อนสารบัญ (ย่อเป็นปุ่มลอย)"
+        class="p-1.5 rounded-lg text-text-muted hover:text-text hover:bg-surface-subtle transition-colors cursor-pointer flex items-center justify-center"
+        aria-label="ซ่อนสารบัญ"
+      >
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Scrollable Headings List -->
+  <div class="flex-1 overflow-y-auto pr-1 scrollbar-none">
+    <ul id="toc-list" class="space-y-1 text-sm list-none p-0 m-0"></ul>
+  </div>
+</div>
+
+<!-- 3. Floating Back to Top Button (Right) -->
+<button
+  id="floating-back-to-top"
+  type="button"
+  title="กลับขึ้นด้านบนสุด"
+  class="fixed bottom-6 right-6 z-40 p-3 rounded-full bg-surface/90 hover:bg-surface text-text border border-border shadow-md backdrop-blur-md transition-all duration-300 hover:border-primary hover:text-primary hover:scale-105 active:scale-95 cursor-pointer opacity-0 pointer-events-none translate-y-3"
+>
+  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <polyline points="18 15 12 9 6 15"></polyline>
+  </svg>
+</button>
+
+<style>
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.96) translateX(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateX(0);
+    }
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    let headingObserver = null;
+    let scrollHandler = null;
+
+    function initFloatingTableOfContents() {
+      const pillTab = document.getElementById("toc-pill-tab");
+      const pillCount = document.getElementById("toc-pill-count");
+      const panel = document.getElementById("toc-floating-panel");
+      const panelCount = document.getElementById("toc-panel-count");
+      const hideBtn = document.getElementById("toc-hide-btn");
+      const list = document.getElementById("toc-list");
+      const backToTopBtn = document.getElementById("floating-back-to-top");
+
+      const content = document.querySelector(".rich-text-content");
+      if (!content || !pillTab || !panel || !list) return;
+
+      const headings = Array.from(content.querySelectorAll("h2, h3, h4"));
+
+      if (headingObserver) {
+        headingObserver.disconnect();
+      }
+
+      // If fewer than 2 headings: completely hide both pill and panel
+      if (headings.length < 2) {
+        pillTab.classList.add("hidden");
+        panel.classList.add("hidden");
+        setupBackToTop(backToTopBtn);
+        return;
+      }
+
+      // Set counts
+      const countText = `${headings.length}`;
+      if (pillCount) pillCount.textContent = countText;
+      if (panelCount) panelCount.textContent = `${headings.length} หัวข้อ`;
+
+      // Determine initial state:
+      // On wide screens (>= 1300px), start expanded. On smaller screens (< 1300px), start collapsed as pill.
+      const isWideScreen = window.innerWidth >= 1300;
+      let isPanelOpen = isWideScreen;
+
+      function renderState() {
+        if (isPanelOpen) {
+          panel.classList.remove("hidden");
+          pillTab.classList.add("hidden");
+          pillTab.classList.remove("flex");
+        } else {
+          panel.classList.add("hidden");
+          pillTab.classList.remove("hidden");
+          pillTab.classList.add("flex");
+        }
+      }
+
+      renderState();
+
+      // Toggle handlers
+      pillTab.onclick = () => {
+        isPanelOpen = true;
+        renderState();
+      };
+
+      hideBtn.onclick = () => {
+        isPanelOpen = false;
+        renderState();
+      };
+
+      // Populate list
+      list.innerHTML = "";
+
+      headings.forEach((heading, idx) => {
+        if (!heading.id) {
+          const rawText = heading.textContent || "";
+          const slugCandidate = rawText
+            .trim()
+            .toLowerCase()
+            .replace(/[^\w\u0E00-\u0E7F]+/g, "-")
+            .replace(/^-+|-+$/g, "");
+          heading.id = slugCandidate || `heading-${idx + 1}`;
+        }
+
+        const tag = heading.tagName.toLowerCase();
+        const isH3 = tag === "h3";
+        const isH4 = tag === "h4";
+        const li = document.createElement("li");
+
+        const link = document.createElement("a");
+        link.href = `#${heading.id}`;
+        link.dataset.targetId = heading.id;
+
+        let indentClass = "text-xs font-medium text-text-muted hover:text-text hover:bg-surface-subtle";
+        let pipClass = "w-2 h-2 bg-primary/40 group-hover:bg-primary";
+
+        if (isH3) {
+          indentClass = "ml-3.5 text-xs text-text-muted/90 hover:text-text border-l-2 border-border/50 pl-2.5";
+          pipClass = "w-1.5 h-1.5 bg-border group-hover:bg-primary";
+        } else if (isH4) {
+          indentClass = "ml-7 text-[11px] text-text-muted/70 hover:text-text border-l-2 border-border/30 pl-2";
+          pipClass = "w-1 h-1 bg-border/80 group-hover:bg-primary";
+        }
+
+        link.className = `toc-link group flex items-start gap-2 py-1 px-2 rounded-xl transition-all duration-200 no-underline ${indentClass}`;
+
+        const pip = document.createElement("span");
+        pip.className = `shrink-0 rounded-full transition-all duration-200 mt-1.5 ${pipClass}`;
+
+        const textSpan = document.createElement("span");
+        textSpan.className = "flex-1 leading-snug line-clamp-2";
+        textSpan.textContent = heading.textContent || "";
+
+        link.appendChild(pip);
+        link.appendChild(textSpan);
+        li.appendChild(link);
+        list.appendChild(li);
+
+        link.addEventListener("click", (e) => {
+          e.preventDefault();
+          const target = document.getElementById(heading.id);
+          if (target) {
+            const navbarOffset = 95;
+            const targetPosition = target.getBoundingClientRect().top + window.scrollY - navbarOffset;
+            window.scrollTo({
+              top: targetPosition,
+              behavior: "smooth",
+            });
+            history.pushState(null, "", `#${heading.id}`);
+          }
+          // On mobile / small screens, auto collapse after jumping to heading
+          if (window.innerWidth < 1024) {
+            isPanelOpen = false;
+            renderState();
+          }
+        });
+      });
+
+      // Active Section Highlighting (ScrollSpy)
+      const allLinks = list.querySelectorAll(".toc-link");
+
+      function setActiveHeading(id) {
+        allLinks.forEach((link) => {
+          const pip = link.querySelector("span");
+          if (link.dataset.targetId === id) {
+            link.classList.add("text-primary", "font-bold", "bg-primary/10");
+            link.classList.remove("text-text-muted");
+            if (pip) {
+              pip.classList.add("bg-primary", "scale-125");
+              pip.classList.remove("bg-border", "bg-primary/40");
+            }
+          } else {
+            link.classList.remove("text-primary", "font-bold", "bg-primary/10");
+            link.classList.add("text-text-muted");
+            if (pip) {
+              pip.classList.remove("bg-primary", "scale-125");
+            }
+          }
+        });
+      }
+
+      headingObserver = new IntersectionObserver(
+        (entries) => {
+          const visibleEntries = entries.filter((entry) => entry.isIntersecting);
+          if (visibleEntries.length > 0) {
+            visibleEntries.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+            setActiveHeading(visibleEntries[0].target.id);
+          }
+        },
+        {
+          rootMargin: "-100px 0px -60% 0px",
+          threshold: [0, 1],
+        }
+      );
+
+      headings.forEach((h) => headingObserver.observe(h));
+
+      setupBackToTop(backToTopBtn);
+    }
+
+    function setupBackToTop(backToTopBtn) {
+      if (!backToTopBtn) return;
+
+      if (scrollHandler) {
+        window.removeEventListener("scroll", scrollHandler);
+      }
+
+      scrollHandler = () => {
+        if (window.scrollY > 400) {
+          backToTopBtn.classList.remove("opacity-0", "pointer-events-none", "translate-y-3");
+          backToTopBtn.classList.add("opacity-100", "pointer-events-auto", "translate-y-0");
+        } else {
+          backToTopBtn.classList.add("opacity-0", "pointer-events-none", "translate-y-3");
+          backToTopBtn.classList.remove("opacity-100", "pointer-events-auto", "translate-y-0");
+        }
+      };
+
+      window.addEventListener("scroll", scrollHandler, { passive: true });
+      scrollHandler();
+
+      backToTopBtn.onclick = () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      };
+    }
+
+    document.addEventListener("astro:page-load", initFloatingTableOfContents);
+  })();
+</script>

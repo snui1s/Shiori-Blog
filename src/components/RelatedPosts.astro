@@ -29,7 +29,6 @@ if (recommendedPosts.length < 3) {
     .orderBy(desc(Post.createdAt))
     .limit(10);
 
-  // Filter out posts already in recommendedPosts
   const existingIds = new Set(recommendedPosts.map(p => p.id));
   const filteredOther = otherCategoryPosts.filter(p => !existingIds.has(p.id));
   
@@ -51,49 +50,54 @@ const placeholderImage = "https://placehold.co/600x400/1a1a1a/F63049?text=Shiori
 ---
 
 {finalPosts.length > 0 && (
-<section class="mt-20 border-t border-white/5 pt-20 reveal">
-  <div class="flex items-center justify-between mb-12">
+<section class="mt-16 border-t border-border pt-14 reveal">
+  <div class="flex items-center justify-between mb-8">
     <div>
-      <h2 class="text-3xl md:text-4xl font-black h-gradient">แนะนำให้อ่านต่อ</h2>
-      <p class="text-text-muted mt-2">สำรวจเรื่องราวอื่นๆ ที่คุณอาจสนใจ</p>
+      <span class="text-xs uppercase tracking-widest text-primary font-bold block mb-1">More Stories</span>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-text tracking-tight m-0">แนะนำให้อ่านต่อ</h2>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
     {finalPosts.map((post, i) => {
-      // Guard against empty imageUrl to prevent Astro <Image> build error
       const imageSrc = post.imageUrl || placeholderImage;
       const optimizedImage = getOptimizedImageUrl(imageSrc, 600);
       
       return (
-        <article class="group post-card glass-premium flex flex-col overflow-hidden rounded-4xl transition-all duration-500 hover:-translate-y-2 hover:border-primary/40 border border-white/5 reveal" style={`animation-delay: ${0.1 * (i + 1)}s`}>
-          <a href={`/blog/${post.slug}`} class="block w-full aspect-video overflow-hidden bg-white/5 relative skeleton">
+        <article class="group relative card-editorial flex flex-col overflow-hidden" style={`animation-delay: ${0.08 * (i + 1)}s`}>
+          {/* Bookmark Ribbon */}
+          <div class="bookmark-ribbon" title="Bookmark">栞</div>
+
+          <a href={`/blog/${post.slug}`} class="block w-full aspect-16/10 overflow-hidden bg-surface-subtle relative">
             <Image
               src={optimizedImage} 
               alt={post.title} 
               width={600}
-              height={338}
-              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              height={375}
+              class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
               loading={i === 0 ? "eager" : "lazy"}
               fetchpriority={i === 0 ? "high" : "low"}
             />
-            <div class="absolute top-4 left-4">
-              <span class="px-4 py-1.5 bg-black/60 backdrop-blur-md rounded-full text-[0.7rem] font-bold text-primary uppercase tracking-wider border border-white/10">
+            <div class="absolute top-3 left-3">
+              <span class="paper-tag text-[0.65rem] px-2 py-0.5 bg-surface/95">
                 {post.category}
               </span>
             </div>
           </a>
-          <div class="p-8 flex flex-col flex-1">
-            <h3 class="text-xl font-bold mb-4 leading-snug">
-              <a href={`/blog/${post.slug}`} class="text-white no-underline transition-colors hover:text-primary line-clamp-2">
+          <div class="p-6 flex flex-col flex-1">
+            <h3 class="text-lg font-bold mb-3 leading-snug">
+              <a href={`/blog/${post.slug}`} class="text-text no-underline transition-colors duration-300 group-hover:text-primary line-clamp-2">
                 {post.title}
               </a>
             </h3>
-            <p class="text-text-muted text-sm leading-relaxed line-clamp-2 mt-auto">
+            <p class="text-text-muted text-sm leading-relaxed line-clamp-2 mb-4 mt-auto">
               {post.excerpt}
             </p>
-            <div class="pt-6 mt-6 border-t border-white/5 flex items-center gap-3 text-xs text-text-muted/60">
+            <div class="pt-4 border-t border-border flex items-center justify-between text-xs text-text-muted">
               <span>{new Date(post.createdAt).toLocaleDateString("th-TH", { timeZone: "Asia/Bangkok", year: "numeric", month: "short", day: "numeric" })}</span>
+              <span class="font-semibold text-primary flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                อ่านต่อ →
+              </span>
             </div>
           </div>
         </article>

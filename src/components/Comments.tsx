@@ -47,36 +47,36 @@ const CommentItem: React.FC<CommentItemProps> = ({
   loading,
   index,
 }) => {
-  const isAuthor = currentUser?.id === comment.userId;
-  const canDelete = isAuthor || isAdmin;
+  const isAuthor = comment.isAuthor || (currentUser?.id && comment.userId && currentUser.id === comment.userId);
+  const canDelete = comment.canDelete !== undefined ? comment.canDelete : (isAuthor || isAdmin);
 
   return (
     <div
-      className={`flex flex-col gap-4 reveal stagger-${(index % 5) + 1} ${isReply ? 'ml-8 md:ml-14 relative before:content-[""] before:absolute before:-left-6 md:before:-left-8 before:top-0 before:bottom-8 before:w-px before:bg-white/10' : ""}`}
+      className={`flex flex-col gap-3 reveal stagger-${(index % 5) + 1} ${isReply ? 'ml-6 md:ml-12 relative before:content-[""] before:absolute before:-left-4 md:before:-left-6 before:top-0 before:bottom-6 before:w-px before:bg-border' : ""}`}
     >
-      <div className="bg-white/1 border border-white/3 p-5 md:p-6 rounded-3xl flex gap-4 md:gap-5 transition-all duration-300 hover:border-white/10 hover:bg-white/2 shadow-sm group">
+      <div className="bg-surface border border-border p-5 md:p-6 rounded-2xl flex gap-4 md:gap-5 transition-all duration-300 hover:border-primary/30 shadow-xs group">
         <div className="relative shrink-0">
           <img
             src={
               getOptimizedImageUrl(comment.user.image, 48) ||
-              `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user.name)}&background=f63049&color=fff`
+              `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user.name)}&background=bc3838&color=fff`
             }
             alt={comment.user.name}
-            className="w-11 h-11 md:w-12 md:h-12 rounded-xl object-cover ring-2 ring-white/5"
+            className="w-10 h-10 md:w-11 md:h-11 rounded-xl object-cover ring-1 ring-border"
             loading="lazy"
             onError={(e) => {
               (e.target as HTMLImageElement).src =
-                `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user.name)}&background=f63049&color=fff`;
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user.name)}&background=bc3838&color=fff`;
             }}
           />
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-baseline mb-2">
-            <span className="font-bold text-white text-[1rem] truncate">
+            <span className="font-bold text-text text-base truncate">
               {comment.user.name}
             </span>
-            <span className="text-[0.7rem] text-text-muted whitespace-nowrap ml-2 uppercase tracking-wider font-medium opacity-60">
+            <span className="text-xs text-text-muted whitespace-nowrap ml-2 uppercase tracking-wider font-medium">
               {new Date(comment.createdAt).toLocaleDateString("th-TH", {
                 day: "numeric",
                 month: "short",
@@ -84,7 +84,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
             </span>
           </div>
 
-          <p className="text-slate-300 leading-relaxed text-[0.95rem] md:text-base mb-4 wrap-break-word whitespace-pre-wrap">
+          <p className="text-text leading-relaxed text-[0.95rem] mb-3 wrap-break-word whitespace-pre-wrap font-normal">
             {comment.content}
           </p>
 
@@ -94,7 +94,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                 onClick={() =>
                   setReplyTo(replyTo === comment.id ? null : comment.id)
                 }
-                className="text-[0.8rem] md:text-[0.85rem] font-bold text-primary hover:text-secondary hover:underline transition-all cursor-pointer"
+                className="text-xs font-bold text-primary hover:text-secondary transition-colors cursor-pointer"
               >
                 {replyTo === comment.id ? "ยกเลิก" : "ตอบกลับ"}
               </button>
@@ -106,7 +106,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   toast(
                     (t) => (
                       <div className="flex items-center gap-4">
-                        <span className="text-sm font-medium text-white">
+                        <span className="text-sm font-medium text-text">
                           ต้องการลบความคิดเห็นนี้?
                         </span>
                         <div className="flex gap-2">
@@ -114,7 +114,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                             onClick={() => {
                               toast.dismiss(t.id);
                             }}
-                            className="px-3 py-1.5 rounded-lg text-xs font-bold text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-text-muted hover:text-text hover:bg-surface-subtle transition-colors"
                           >
                             ยกเลิก
                           </button>
@@ -123,7 +123,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                               handleDelete(comment.id);
                               toast.dismiss(t.id);
                             }}
-                            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-500 hover:bg-rose-600 text-white shadow-lg transition-all"
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white transition-all shadow-xs"
                           >
                             ลบเลย
                           </button>
@@ -132,20 +132,19 @@ const CommentItem: React.FC<CommentItemProps> = ({
                     ),
                     {
                       style: {
-                        background: "rgba(20, 20, 20, 0.9)",
-                        backdropFilter: "blur(12px)",
-                        border: "1px solid rgba(255, 255, 255, 0.1)",
-                        color: "#fff",
-                        borderRadius: "16px",
+                        background: "var(--color-surface)",
+                        border: "1px solid var(--color-border)",
+                        color: "var(--color-text)",
+                        borderRadius: "12px",
                         padding: "12px 16px",
-                        boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
+                        boxShadow: "0 10px 30px rgba(0, 0, 0, 0.2)",
                       },
                       position: "top-center",
                       duration: 5000,
                     },
                   );
                 }}
-                className="text-text-muted hover:text-red-500 transition-colors cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100"
+                className="text-text-muted hover:text-red-600 transition-colors cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100"
                 title="ลบความคิดเห็น"
               >
                 <svg
@@ -167,7 +166,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
               </button>
             )}
 
-            <span className="text-[0.8rem] text-text-muted/40 font-mono ml-auto">
+            <span className="text-xs text-text-muted/50 font-mono ml-auto">
               #{comment.id}
             </span>
           </div>
@@ -175,21 +174,21 @@ const CommentItem: React.FC<CommentItemProps> = ({
           {replyTo === comment.id && (
             <form
               onSubmit={(e) => handleSubmit(e, comment.id)}
-              className="mt-5 animate-slide-down"
+              className="mt-4 animate-slide-down"
             >
               <textarea
                 value={replyContent}
                 onChange={(e) => setReplyContent(e.target.value)}
                 placeholder={`เขียนคำตอบให้ ${comment.user.name}...`}
-                className="w-full bg-transparent border border-white/10 rounded-2xl p-4 text-white text-[0.95rem] outline-none focus:border-primary transition-all resize-none"
+                className="w-full bg-surface-subtle border border-border rounded-xl p-3 text-text text-sm outline-none focus:border-primary focus:bg-surface transition-all resize-none"
                 rows={2}
                 autoFocus
               />
-              <div className="flex justify-end mt-3">
+              <div className="flex justify-end mt-2.5">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-primary hover:bg-secondary text-white px-6 py-2 rounded-full font-bold text-sm transition-all shadow-lg hover:shadow-primary/20 disabled:opacity-50 cursor-pointer"
+                  className="bg-primary hover:bg-secondary text-white px-5 py-1.5 rounded-full font-semibold text-xs transition-all shadow-xs disabled:opacity-50 cursor-pointer"
                 >
                   {loading ? "..." : "ส่งคำตอบ"}
                 </button>
@@ -338,41 +337,43 @@ const Comments: React.FC<CommentsProps> = ({
   };
 
   return (
-    <section className="mt-24 w-full max-w-[850px] mx-auto reveal">
-      <h3 className="text-2xl md:text-[2.2rem] font-bold text-center mb-12 h-gradient tracking-tight">
-        Comments
-      </h3>
+    <section className="mt-16 w-full max-w-[800px] mx-auto reveal">
+      <div className="flex items-center gap-2.5 mb-8 justify-center">
+        <span className="hanko-stamp text-xs">栞</span>
+        <h3 className="text-xl md:text-2xl font-extrabold text-text tracking-tight m-0">
+          บทสนทนาและความคิดเห็น
+        </h3>
+      </div>
 
       {session ? (
         <form
           onSubmit={(e) => handleSubmit(e)}
-          className="bg-transparent border-none shadow-none p-0 mb-16 flex flex-col gap-6 relative group/form"
+          className="card-editorial p-5 md:p-6 mb-12 flex flex-col gap-4 relative"
         >
-          <div className="absolute inset-0 bg-linear-to-br from-primary/2 to-transparent pointer-events-none"></div>
           <textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            placeholder="มีไรอยากบอกพิมเลยจ้า"
-            className="w-full bg-black/40 border border-white/10 rounded-2xl p-5 text-white text-l outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all min-h-[140px] resize-none relative z-10"
+            placeholder="ร่วมแสดงความคิดเห็นหรือแบ่งปันมุมมองของคุณ..."
+            className="w-full bg-surface-subtle border border-border rounded-xl p-4 text-text text-sm md:text-base outline-none focus:border-primary/40 focus:bg-surface transition-all min-h-[120px] resize-none"
           />
           <button
             type="submit"
             disabled={loading}
-            className="self-end bg-linear-to-r from-primary to-secondary text-white px-10 py-4 rounded-full font-bold text-base transition-all hover:-translate-y-1 hover:shadow-[0_10px_25px_-5px_#f63049] active:scale-95 disabled:opacity-50 cursor-pointer relative z-10"
+            className="self-end bg-primary hover:bg-secondary text-white px-7 py-2.5 rounded-full font-semibold text-sm transition-all shadow-xs active:scale-95 disabled:opacity-50 cursor-pointer"
           >
-            {loading ? "กำลังส่ง..." : "Comment"}
+            {loading ? "กำลังส่ง..." : "ส่งความคิดเห็น"}
           </button>
         </form>
       ) : (
-        <div className="py-12 px-8 text-center rounded-[2.5rem] border border-dashed border-white/10 bg-white/1 mb-12 flex flex-col items-center gap-2">
-          <p className="text-text-muted text-lg">
-            ล็อกอินด้วย Google เพื่อร่วมเป็นส่วนหนึ่งของชุมชนนะจ๊ะ
+        <div className="py-10 px-6 text-center rounded-2xl border border-dashed border-border bg-surface/60 mb-10 flex flex-col items-center gap-1.5">
+          <p className="text-text font-medium text-base m-0">
+            เข้าสู่ระบบเพื่อร่วมสนทนาและเขียนความคิดเห็น
           </p>
-          <span className="text-sm opacity-40">เชื่อมต่อหัวใจผ่านตัวอักษร</span>
+          <span className="text-xs text-text-muted">แบ่งปันเรื่องราวและเชื่อมต่อผ่านตัวอักษร</span>
         </div>
       )}
 
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-6">
         {fetchError && (
           <div className="glass-premium p-10 text-center rounded-3xl border border-primary/20">
             <p className="text-primary font-bold mb-4">{fetchError}</p>
